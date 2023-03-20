@@ -56,7 +56,7 @@
 
 *Information Retrieval*
 
-**SPECIALTY DATABASES*
+**SPECIALTY DATABASES**
 
 *Object-Based Databases*
 
