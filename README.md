@@ -56,19 +56,20 @@
 
 [*Information Retrieval*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#information-retrieval)
 
-**SPECIALTY DATABASES**
+[**SPECIALTY DATABASES**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#specialty-databases-1)
 
-*Object-Based Databases*
+[*Object-Based Databases*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#object-based-databases)
 
-*XML*
+[*XML*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#xml)
 
-**ADVANCED TOPICS**
 
-*Advanced Application Development*
+[**ADVANCED TOPICS**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#advanced-topics)
 
-*Spatial and Temporal Data and Mobility*
+[*Advanced Application Development*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#advanced-application-development)
 
-*Advanced Transaction Processing*
+[*Spatial and Temporal Data and Mobility*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#spatial-and-temporal-data-and-mobility)
+
+[*Advanced Transaction Processing*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#advanced-transaction-processing)
 
 # Introduction
 
