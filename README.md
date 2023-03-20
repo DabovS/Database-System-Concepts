@@ -6,15 +6,15 @@
 
 [*RELATIONAL DATABASES*](https://github.com/DabovS/Database-System-Concepts#relational-databases-1)
 
-*Introduction to the Relational Model*
+[*Introduction to the Relational Model*](https://github.com/DabovS/Database-System-Concepts#introduction-to-the-relational-model)
 
-*Introduction to SQL*
+[*Introduction to SQL*](https://github.com/DabovS/Database-System-Concepts#introduction-to-sql)
 
-*Intermediate SQL*
+[*Intermediate SQL*](https://github.com/DabovS/Database-System-Concepts#intermediate-sql)
 
-*Advanced SQL*
+[*Advanced SQL*](https://github.com/DabovS/Database-System-Concepts#advanced-sql)
 
-*Formal Relational Query Languages*
+[*Formal Relational Query Languages*](https://github.com/DabovS/Database-System-Concepts#formal-relational-query-languages)
 
 **DATABASE DESIGN**
 
