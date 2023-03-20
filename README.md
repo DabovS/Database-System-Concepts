@@ -34,13 +34,13 @@
 
 [*Query Optimization*](https://github.com/DabovS/Database-System-Concepts#query-optimization)
 
-**TRANSACTION MANAGEMENT**
+[**TRANSACTION MANAGEMENT**](https://github.com/DabovS/Database-System-Concepts#transaction-management-1)
 
-*Transactions*
+[*Transactions*](https://github.com/DabovS/Database-System-Concepts#transactions-1)
 
-*Concurrency Control*
+[*Concurrency Control*](https://github.com/DabovS/Database-System-Concepts#concurrency-control)
 
-*Recovery System*
+[*Recovery System*](https://github.com/DabovS/Database-System-Concepts#recovery-system)
 
 **SYSTEM ARCHITECTURE**
 
