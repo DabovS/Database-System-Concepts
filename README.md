@@ -175,15 +175,84 @@ The different types of users who work with a database system, including users, a
 The use of punched cards and mechanical systems were the precursors to automation of data processing tasks. In the late 1960s and 1970s, the use of hard disks led to the creation of network and hierarchical databases, and the introduction of the relational model by Codd. Although the relational model was not initially used due to perceived performance disadvantages, it became dominant in the 1980s. The 1990s saw the explosive growth of the World Wide Web, which necessitated database systems that supported high transaction-processing rates, reliability, and 24x7 availability. The 2000s saw the growth of XML and associated query language XQuery, as well as autonomic-computing/auto-admin techniques, and the use of open-source database systems like PostgreSQL and MySQL. The latter part of the decade saw the growth of specialized databases for data.
 
 # RELATIONAL DATABASES
+The importance of data models, with a focus on the relational model. The relational model uses tables to represent data and relationships, and is widely adopted in database products. To make data available to users, query languages like SQL have been developed, and data integrity and protection are also important issues. Chapters 3, 4, and 5 cover SQL, including integrity constraints and authorization mechanisms. Chapter 6 covers formal query languages based on mathematical logic, which form the basis for SQL and other user-friendly languages.
 
-## Introduction to the Relational Model
+## Introduction to the Relational Model and Structure of Relational Databases
+The relational model is the primary data model for commercial data-processing applications because of its simplicity. It is made up of a collection of tables, where each table is assigned a unique name and consists of rows and columns. 
 
-### Structure of Relational Databases
+![8](https://user-images.githubusercontent.com/124214430/226383016-532340b9-c340-482a-95a5-22cb11507604.png)
+
+A row in a table represents a relationship among a set of values, and each table is a collection of relationships. In the relational model, a relation is used to refer to a table, while the term tuple is used to refer to a row, and the term attribute refers to a column of a table. 
+
+![9](https://user-images.githubusercontent.com/124214430/226383067-345b1bed-c27e-461d-861a-fd75493d995d.png)
+
+![10](https://user-images.githubusercontent.com/124214430/226383096-82e90618-8cdd-42fa-9bf5-00488a344202.png)
+
+Each attribute of a relation has a set of permitted values, called the domain of that attribute. The null value is a special value that signifies that the value is unknown. This chapter focuses on the fundamentals of the relational model, including the structure of relational databases, and the correspondence between the concept of a table and the mathematical concept of a relation.
+
+![11](https://user-images.githubusercontent.com/124214430/226383117-c060c33c-85fa-4c5c-a1b0-3915ef02c819.png)
+
 ### Database Schema
+The concept of database schema refers to the logical design of a database, and the database instance, which is a snapshot of the data in the database at a given instant in time. A relation schema consists of a list of attributes and their corresponding domains, while a relation instance corresponds to the value of a variable. 
+
+![12](https://user-images.githubusercontent.com/124214430/226383163-4da92df0-5db2-42a6-8d0d-3f6a48769ba9.png)
+
+```
+department (dept name, building, budget)
+
+```
+
+The schema of a relation generally does not change, whereas the contents of a relation instance may change as the relation is updated. 
+
+```
+section (course id, sec id, semester, year, building, room number, time slot id)
+```
+
+Common attributes in relation schemas are used to relate tuples of distinct relations. 
+
+```
+teaches (ID, course id, sec id, semester, year)
+```
+
+![13](https://user-images.githubusercontent.com/124214430/226383188-00ae03bc-aeeb-4f92-8e1b-f5d2bf207f35.png)
+
+Examples of different relation schemas and instances in a university database.
+
+* student (ID, name, dept name, tot cred)
+* advisor (s id, i id)
+* takes (ID, course id, sec id, semester, year, grade)
+* classroom (building, room number, capacity)
+* time slot (time slot id, day, start time, end time)
+
+![14](https://user-images.githubusercontent.com/124214430/226383219-31fe4fa6-3d10-442c-8b1c-7aa5ce1c6612.png)
+
 ### Keys
+The concept of keys in database design is important for identifying tuples within a relation. A superkey is a set of one or more attributes that can uniquely identify a tuple in the relation, while a candidate key is a minimal superkey for which no proper subset is a superkey. A primary key is a candidate key chosen by the database designer as the principal means of identifying tuples within a relation. Primary keys should be chosen carefully, as they represent a constraint in the real-world enterprise being modeled, and should be unlikely to change. Foreign keys are attributes in a relation that reference the primary key of another relation. Referential integrity constraints require that the values appearing in specified attributes of any tuple in the referencing relation also appear in specified attributes of at least one tuple in the referenced relation.
+
 ### Schema Diagrams
+Schema diagrams are used to depict the structure of a database schema, including primary key and foreign key dependencies. Each relation is represented as a box with the relation name and attributes listed inside, and foreign key dependencies are shown as arrows. Other referential integrity constraints are not shown explicitly, but can be represented using entity-relationship diagrams. Many database systems provide graphical tools for creating schema diagrams. The example organization used in later chapters is a university, and its corresponding relational schema is provided in Figure 15.
+
+![15](https://user-images.githubusercontent.com/124214430/226383272-93f8b3fa-6a57-43ce-bb57-4ea1a48c9d16.png)
+
 ### Relational Query Languages
+Query languages used to retrieve information from a database  can be procedural or nonprocedural. SQL is a widely used query language that incorporates elements of both approaches. Also, "pure" query languages are related to  the relational algebra, tuple relational calculus, and domain relational calculus. These languages are formal and lack the "syntactic sugar" of commercial languages but illustrate fundamental techniques for extracting data from a database. The relational algebra consists of a set of operations, while the relational calculus uses predicate logic to define desired results without giving specific procedures.
+
+![16](https://user-images.githubusercontent.com/124214430/226383300-87669b52-de04-4ef3-9b96-05e104b4787b.png)
+
 ### Relational Operations
+Relational operations are a set of operations that can be applied to either a single relation or a pair of relations. The most frequent operation is selecting specific tuples from a single relation that satisfies a particular predicate.
+
+![17](https://user-images.githubusercontent.com/124214430/226383333-7502f63a-a381-4d1a-a01c-fac572ae6d99.png)
+
+Another operation is selecting certain attributes from a relation. The join operation combines two relations by merging pairs of tuples, and the natural join operation matches tuples whose values are the same on all attribute names that are common to both relations. 
+
+![18](https://user-images.githubusercontent.com/124214430/226383358-5bab3e69-760e-47fd-9951-59a7d379e540.png)
+
+![19](https://user-images.githubusercontent.com/124214430/226383369-448e76fc-52c3-4d30-8d83-088dac09eeef.png)
+
+The Cartesian product operation combines tuples from two relations, regardless of whether their attribute values match. Normal set operations like union, intersection, and set difference can be performed on relations. Operations can be performed on the results of queries.
+
+![20](https://user-images.githubusercontent.com/124214430/226383407-0d96a0b8-22df-40aa-ae67-82586177c6ee.png)
 
 ## Introduction to SQL
 
