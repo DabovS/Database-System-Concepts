@@ -50,11 +50,11 @@
 
 [*Distributed Databases*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#distributed-databases)
 
-**DATA WAREHOUSING, DATA MINING, AND INFORMATION RETRIEVAL**
+[**DATA WAREHOUSING, DATA MINING, AND INFORMATION RETRIEVAL**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#data-warehousing-data-mining-and-information-retrieval)
 
-*Data Warehousing and Mining*
+[*Data Warehousing and Mining*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#data-warehousing-and-mining)
 
-*Information Retrieval*
+[*Information Retrieval*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#information-retrieval)
 
 **SPECIALTY DATABASES**
 
