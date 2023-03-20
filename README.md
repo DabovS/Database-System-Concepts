@@ -70,8 +70,6 @@
 
 *Advanced Transaction Processing*
 
-DATABASE SYSTEM CONCEPTS
-
 # Introduction
 
 ### Database-System Applications 
