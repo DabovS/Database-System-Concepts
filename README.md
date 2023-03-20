@@ -16,13 +16,13 @@
 
 [*Formal Relational Query Languages*](https://github.com/DabovS/Database-System-Concepts#formal-relational-query-languages)
 
-**DATABASE DESIGN**
+[**DATABASE DESIGN**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#database-design-1)
 
-*Database Design and the E-R Model*
+[*Database Design and the E-R Model*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#database-design-and-the-e-r-model)
 
-*Relational Database Design*
+[*Relational Database Design*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#relational-database-design)
 
-*Application Design and Development*
+[*Application Design and Development*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#application-design-and-development)
 
 **DATA STORAGE AND QUERYING**
 
