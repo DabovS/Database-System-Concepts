@@ -24,15 +24,15 @@
 
 [*Application Design and Development*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#application-design-and-development)
 
-**DATA STORAGE AND QUERYING**
+[**DATA STORAGE AND QUERYING**](https://github.com/DabovS/Database-System-Concepts#data-storage-and-querying-1)
 
-*Storage and File Structure*
+[*Storage and File Structure*](https://github.com/DabovS/Database-System-Concepts#storage-and-file-structure)
 
-*Indexing and Hashing*
+[*Indexing and Hashing*](https://github.com/DabovS/Database-System-Concepts#indexing-and-hashing)
 
-*Query Processing*
+[*Query Processing*](https://github.com/DabovS/Database-System-Concepts#query-processing)
 
-*Query Optimization*
+[*Query Optimization*](https://github.com/DabovS/Database-System-Concepts#query-optimization)
 
 **TRANSACTION MANAGEMENT**
 
