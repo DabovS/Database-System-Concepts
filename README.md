@@ -4,7 +4,7 @@
 
 [**Introduction**](https://github.com/DabovS/Database-System-Concepts#introduction)
 
-[*RELATIONAL DATABASES*](https://github.com/DabovS/Database-System-Concepts#relational-databases-1)
+[**RELATIONAL DATABASES**](https://github.com/DabovS/Database-System-Concepts#relational-databases-1)
 
 [*Introduction to the Relational Model*](https://github.com/DabovS/Database-System-Concepts#introduction-to-the-relational-model)
 
