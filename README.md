@@ -1,4 +1,7 @@
 # DATABASE SYSTEM CONCEPTS
+The manual discusses the evolution of database management from a specialized computer application to an essential component of modern computing. It explains the fundamental concepts of database management, including database design, database languages, and database-system implementation, and is intended for a first course in databases at the junior or senior undergraduate, or first-year graduate, level. The manual assumes only a familiarity with basic data structures, computer organization, and a high-level programming language such as Java, C, or Pascal. The authors present concepts as intuitive descriptions, with many based on a running example of a university. The manual covers important theoretical results but omits formal proofs, using figures and examples to suggest why a result is true. The concepts and algorithms presented are often based on those used in existing commercial or experimental database systems, but are presented in a general setting not tied to any one particular database system. The manual includes case studies in Part 9 and has been updated to reflect changes in the way databases are designed, managed, and used. It also takes into account trends in the teaching of database concepts and makes adaptations where appropriate.
+
+The first chapter offers an introduction to database systems and an example application. Parts 1 and 2 cover relational databases and database design, respectively, with an emphasis on SQL and the entity-relationship data model. Part 3 focuses on data storage and querying, including storage devices, data structures, and query evaluation algorithms. Part 4 discusses transaction management, including atomicity, consistency, isolation, and durability, and covers techniques for ensuring serializability and correct transaction execution. Part 5 covers system architecture, including centralized systems, client-server systems, parallel and distributed architectures, and distributed databases. Part 6 introduces data warehousing, data mining, and information retrieval techniques. Part 7 covers specialty databases, including object-based databases and XML. Finally, Part 8 covers advanced topics, including spatial and temporal databases, and covers new trends such as NoSQL and NewSQL. The five appendices cover mathematical preliminaries, relational algebra, additional SQL, the Web and DBMSs, and advanced application development. The book is aimed at students, professionals, and researchers interested in learning about the concepts and principles of database systems.
 
 ## Content
 
@@ -73,19 +76,103 @@
 
 # Introduction
 
+
 ### Database-System Applications 
+Database management systems (DBMS) is a system that stores and manages data, with the goal of providing a way to store and retrieve database information that is both convenient and efficient. Databases are used in many applications such as enterprise information, banking and finance, universities, airlines, and telecommunications. In addition to these applications, databases also play an important role in everyday life, such as when accessing an online bookstore, bank website, or viewing advertisements online. Database systems are designed to manage large bodies of information, ensuring the safety of information stored, despite system crashes or attempts at unauthorized access. The purpose of database systems  is to provide a more efficient way to manage commercial data compared to earlier methods such as storing it in operating system files.
+
 ### Purpose of Database Systems 
+The disadvantages of keeping organizational information in a file-processing system, highlighting the issues of data redundancy, difficulty in accessing data, data isolation, integrity problems, atomicity problems, and concurrent-access anomalies, these problems can lead to higher storage and access costs, data inconsistency, and data loss, and can make it difficult to maintain data consistency, supervise data access, and provide responsive data-retrieval systems. As a result, more responsive and efficient data-retrieval systems are required.
+
 ### View of Data 
-### Database Languages
+The development of database systems to solve problems with file-processing systems is a collection of interrelated data and programs that allow users to access and modify the data. The system provides users with an abstract view of the data by using multiple levels of abstraction, including the physical level, logical level, and view level. The physical level describes how the data are stored, while the logical level describes what data are stored and what relationships exist among those data. The view level describes only part of the database to simplify users' interactions with the system. Many users of the database system do not need all the information stored in the database, and the view level of abstraction exists to simplify their interaction with the system.
+
+![1](https://user-images.githubusercontent.com/124214430/226368719-f3e28a11-3b05-4413-ae7e-fb8cffcb7752.png)
+
+```
+Type instructor = record
+        ID : char (5); 
+        name : char (20); 
+        dept name : char (20); salary : numeric (8,2);
+    end;
+```
+The code defines a new record type called "instructor" with four fields, each having a name and type. A university may have other record types, such as "department," "course," and "student," each with their own fields. At the physical level, each record is stored as a block of consecutive storage locations, but this detail is hidden from programmers and database users. Database administrators may be aware of these physical details.
+
+At the logical level, records are described by type definitions and their interrelationships are defined. Programmers and database administrators work at this level. At the view level, computer users see application programs that hide details of the data types. Views of the database are defined to provide a security mechanism to prevent users from accessing certain parts of the database.
+
+The overall design of a database is called the database schema, while the information stored in the database at a particular moment is called an instance of the database. There are different types of schemas, such as the physical schema, logical schema, and view level schema. The logical schema is the most important as programmers use it to construct applications. The different data models used in databases are the relational model, entity-relationship model, object-based data model, and semistructured data model. The relational model is the most widely used. The network data model and the hierarchical data model are used little now and are outlined in appendices for interested readers.
+
+### Database Languages 
+The two main languages used in a database system are the data-manipulation language (DML) and the data-definition language (DDL). The DML allows users to access, insert, delete and modify data stored in the database. It can be either procedural or declarative, with the latter being easier to use but requiring the system to figure out how to access data. A query language is a part of DML that involves information retrieval. SQL is the most widely used query language.
+
+The DDL specifies the database schema and additional properties of the data. It is also used to define the storage structure and access methods. The DDL includes constraints such as domain constraints, referential integrity, assertions, and authorization. These constraints ensure the consistency of data and restrict the type of access users have on various data values in the database. 
+
 ### Relational Databases 
-### Database Design 
-### Data Storage and Querying 
+Relational databases are using tables to represent data and relationships among that data. Each table has multiple columns with unique names, and record-based models organize data in fixed-format records of several types. SQL is the most common language used in commercial relational database systems, and it covers it in detail in Chapters 3, 4, and 5. The relational model can have schema design problems, such as unnecessarily duplicated information, which are discussed in Chapter 8.
+
+![2](https://user-images.githubusercontent.com/124214430/226368671-27302650-6467-40e8-9c16-dcb4bd717ca8.png)
+
+![3](https://user-images.githubusercontent.com/124214430/226368646-cd079b0f-f70f-4be0-9c4e-ba3c93e5c5ee.png)
+
+The Data-Manipulation Language (DML) used in relational databases above, specifically the nonprocedural SQL query language. A query takes input from one or more tables and always returns a single table. An example SQL query is provided to illustrate how to retrieve data from a table.
+
+```
+            select instructor.name 
+            from instructor 
+            where instructor.dept name = ’History’;
+```
+
+The expected result of running a specific SQL query on the tables in Figure 1.2. The query is designed to find the names of all instructors in the History department. The system would search the tables and find that there are two departments with a budget greater than $95,000: Computer Science and Finance. There are a total of five instructors in these departments, so the resulting table would have two columns (ID, dept name) and five rows listing the instructors in the two departments.
+
+```
+Create table department
+        (dept, name char (20), 
+        building char (15),
+        budget  numeric (12,2));
+```
+
+The Data-Definition Language (DDL) in SQL allows for the definition of tables and other database elements. The schema of a table is an example of metadata. SQL is not as powerful as a universal Turing machine and cannot support actions like input from users or output to displays, so application programs must be written in a host language like C, C++, or Java. DML statements can be executed from the host language either by providing an application program interface or by embedding DML calls within the host language program using a preprocessor like the DML precompiler.
+
+### Database Design and Data Storage and Querying 
+Database design involves managing large amounts of information that are part of an enterprise's operation. The initial step in designing a database is to characterize fully the data needs of prospective database users. Next, a data model is chosen and the requirements are translated into a conceptual schema. The designer reviews the schema to confirm that all data requirements are satisfied and are not in conflict with one another. The final design phases involve mapping the conceptual schema onto the implementation data model of the database system that will be used and specifying the physical features of the database. An example of how a database for a university could be designed. The entity-relationship data model is discussed as a way to represent entities and relationships in a database.
+
+![4](https://user-images.githubusercontent.com/124214430/226368609-4528b6b0-4cfc-4dfa-b879-27a51dbf27b3.png)
+
+Two methods for designing a relational database: entity-relationship modeling and normalization. Entity-relationship modeling involves representing entity sets and relationship sets using UML, while normalization aims to generate relation schemas that avoid redundancy and allow easy information retrieval. Also, how-to map correctly cardinalities in the E-R model and discusses the drawbacks of a poorly designed database, such as repetition of information and an inability to represent certain information.
+
+![5](https://user-images.githubusercontent.com/124214430/226368552-380eaa34-9ab1-4aea-aa66-7d5674771bb6.png)
+
 ### Transaction Management 
-### Database Architecture 
-### Data Mining and Information Retrieval 
-### Specialty Databases 
+Two problems arise when designing databases, namely, the repetition of information and the inability to represent certain information. These problems can be resolved through normalization, which is a formal method of designing databases. The passage also explains the two main components of a database system, the storage manager, and the query processor. The storage manager is responsible for storing, retrieving, and updating data in the database, and its components include the authorization and integrity manager, transaction manager, file manager, and buffer manager. The query processor, on the other hand, simplifies access to data for database users. The passage also discusses the importance of minimizing the movement of data between disk and main memory, as well as the different data structures implemented by the storage manager, including data files, data dictionary, and indices.
+
+### Database Architecture
+**The three main components:**
+
+* Query Processor
+* Transaction Management
+* Database Architecture
+
+![6](https://user-images.githubusercontent.com/124214430/226368517-21c7c867-64db-4e9b-981c-7d5e67596a52.png)
+
+**The Query Processor consists of three parts:**
+
+* DDL Interpreter
+* DML Compiler
+* Query Evaluation Engine
+
+The DDL Interpreter interprets DDL statements and records the definitions in the data dictionary. The DML Compiler translates DML statements in a query language into an evaluation plan consisting of low-level instructions. The Query Evaluation Engine executes low-level instructions generated by the DML Compiler. Transaction Management deals with the processing of a single logical function in a database application called a transaction, which must satisfy atomicity, consistency, and durability properties. The Recovery Manager ensures the atomicity and durability properties of a transaction, while the Concurrency Control Manager controls the interaction among concurrent transactions to ensure the consistency of the database. 
+
+![7](https://user-images.githubusercontent.com/124214430/226368459-5bcce428-f6bc-4ceb-9d26-1ba5faa356c3.png)
+
+The Database Architecture is greatly influenced by the underlying computer system on which the database system runs, and it includes centralized, client-server, parallel, and distributed databases. The book covers the general structure of modern computer systems, how various actions of a database can be implemented to exploit parallel processing, and how to deal with issues that arise in a distributed database.
+
+### Data Mining and Information Retrieval and Specialty Databases 
+Data mining is the process of analyzing large databases to find useful patterns, and information retrieval, which is the querying of unstructured textual data. Specialty databases, such as object-based data models and semistructured data models. Object-oriented programming concepts, such as encapsulation and inheritance, have been applied to data modeling. The object-relational data model is a combination of object-oriented and relational models. Semistructured data models allow for data with varying sets of attributes and are used in XML language. Chapters 20 to 23 cover these topics in more detail.
+
 ### Database Users and Administrators
+The different types of users who work with a database system, including users, application programmers, sophisticated users, and specialized users. Each type of user interacts with the system differently, using various user interfaces and tools. Additionally, the text explains the role of a database administrator (DBA), who has central control over the system, including creating and modifying the database schema, granting authorization for data access, and performing routine maintenance tasks like backing up the database and monitoring performance.
+
 ### History of Database Systems 
+The use of punched cards and mechanical systems were the precursors to automation of data processing tasks. In the late 1960s and 1970s, the use of hard disks led to the creation of network and hierarchical databases, and the introduction of the relational model by Codd. Although the relational model was not initially used due to perceived performance disadvantages, it became dominant in the 1980s. The 1990s saw the explosive growth of the World Wide Web, which necessitated database systems that supported high transaction-processing rates, reliability, and 24x7 availability. The 2000s saw the growth of XML and associated query language XQuery, as well as autonomic-computing/auto-admin techniques, and the use of open-source database systems like PostgreSQL and MySQL. The latter part of the decade saw the growth of specialized databases for data.
 
 # RELATIONAL DATABASES
 
