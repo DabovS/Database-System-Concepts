@@ -42,13 +42,13 @@
 
 [*Recovery System*](https://github.com/DabovS/Database-System-Concepts#recovery-system)
 
-**SYSTEM ARCHITECTURE**
+[**SYSTEM ARCHITECTURE**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#system-architecture)
 
-*Database-System Architectures*
+[*Database-System Architectures*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#database-system-architectures)
 
-*Parallel Databases*
+[*Parallel Databases*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#parallel-databases)
 
-*Distributed Databases*
+[*Distributed Databases*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#distributed-databases)
 
 **DATA WAREHOUSING, DATA MINING, AND INFORMATION RETRIEVAL**
 
