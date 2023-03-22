@@ -5,7 +5,7 @@ Intended for students at the junior or senior undergraduate or first-year gradua
 
 While important theoretical results are covered, we eschew formal proofs in favor of figures and examples that vividly illustrate the truth of a given result. Formal descriptions and proofs can be found in advanced texts and research papers referenced in the bibliographical notes.
 
-This text is an indispensable resource for anyone seeking to acquire a deep understanding of database management, rooted in theoretical foundations but connected to practical applications.
+This repository is an indispensable resource for anyone seeking to acquire a deep understanding of database management, rooted in theoretical foundations but connected to practical applications.
 
 ## Content
 
