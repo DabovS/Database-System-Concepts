@@ -1,4 +1,5 @@
 # DATABASE SYSTEM CONCEPTS
+
 The landscape of computer science education has undergone a profound transformation in recent years, as database management has emerged as a critical pillar in modern computing environments. To equip students with the essential knowledge about database systems, we present a comprehensive exploration of the fundamental concepts of database management, ranging from database design to database languages to database-system implementation.
 
 Intended for students at the junior or senior undergraduate or first-year graduate level, this text provides both basic materials for an introductory course as well as advanced material suitable for supplemental or advanced study. Assuming only a familiarity with basic data structures, computer organization, and high-level programming languages like Java, C, or Pascal, we present concepts as intuitive descriptions, grounded in the running example of a university.
@@ -69,7 +70,6 @@ This repository is an indispensable resource for anyone seeking to acquire a dee
 
 [*XML*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#xml)
 
-
 [**ADVANCED TOPICS**](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#advanced-topics)
 
 [*Advanced Application Development*](https://github.com/DabovS/Database-System-Concepts/blob/main/README.md#advanced-application-development)
@@ -80,37 +80,41 @@ This repository is an indispensable resource for anyone seeking to acquire a dee
 
 # Introduction
 
+### Database-System Applications
 
-### Database-System Applications 
 Database management systems (DBMS) is a system that stores and manages data, with the goal of providing a way to store and retrieve database information that is both convenient and efficient. Databases are used in many applications such as enterprise information, banking and finance, universities, airlines, and telecommunications. In addition to these applications, databases also play an important role in everyday life, such as when accessing an online bookstore, bank website, or viewing advertisements online. Database systems are designed to manage large bodies of information, ensuring the safety of information stored, despite system crashes or attempts at unauthorized access. The purpose of database systems  is to provide a more efficient way to manage commercial data compared to earlier methods such as storing it in operating system files.
 
-### Purpose of Database Systems 
+### Purpose of Database Systems
+
 The disadvantages of keeping organizational information in a file-processing system, highlighting the issues of data redundancy, difficulty in accessing data, data isolation, integrity problems, atomicity problems, and concurrent-access anomalies, these problems can lead to higher storage and access costs, data inconsistency, and data loss, and can make it difficult to maintain data consistency, supervise data access, and provide responsive data-retrieval systems. As a result, more responsive and efficient data-retrieval systems are required.
 
-### View of Data 
+### View of Data
+
 The development of database systems to solve problems with file-processing systems is a collection of interrelated data and programs that allow users to access and modify the data. The system provides users with an abstract view of the data by using multiple levels of abstraction, including the physical level, logical level, and view level. The physical level describes how the data are stored, while the logical level describes what data are stored and what relationships exist among those data. The view level describes only part of the database to simplify users' interactions with the system. Many users of the database system do not need all the information stored in the database, and the view level of abstraction exists to simplify their interaction with the system.
 
 ![1](https://user-images.githubusercontent.com/124214430/226368719-f3e28a11-3b05-4413-ae7e-fb8cffcb7752.png)
 
-```
-Type instructor = record
+```Type instructor = record
         ID : char (5); 
         name : char (20); 
         dept name : char (20); salary : numeric (8,2);
     end;
 ```
+
 The code defines a new record type called "instructor" with four fields, each having a name and type. A university may have other record types, such as "department," "course," and "student," each with their own fields. At the physical level, each record is stored as a block of consecutive storage locations, but this detail is hidden from programmers and database users. Database administrators may be aware of these physical details.
 
 At the logical level, records are described by type definitions and their interrelationships are defined. Programmers and database administrators work at this level. At the view level, computer users see application programs that hide details of the data types. Views of the database are defined to provide a security mechanism to prevent users from accessing certain parts of the database.
 
 The overall design of a database is called the database schema, while the information stored in the database at a particular moment is called an instance of the database. There are different types of schemas, such as the physical schema, logical schema, and view level schema. The logical schema is the most important as programmers use it to construct applications. The different data models used in databases are the relational model, entity-relationship model, object-based data model, and semistructured data model. The relational model is the most widely used. The network data model and the hierarchical data model are used little now and are outlined in appendices for interested readers.
 
-### Database Languages 
+### Database Languages
+
 The two main languages used in a database system are the data-manipulation language (DML) and the data-definition language (DDL). The DML allows users to access, insert, delete and modify data stored in the database. It can be either procedural or declarative, with the latter being easier to use but requiring the system to figure out how to access data. A query language is a part of DML that involves information retrieval. SQL is the most widely used query language.
 
 The DDL specifies the database schema and additional properties of the data. It is also used to define the storage structure and access methods. The DDL includes constraints such as domain constraints, referential integrity, assertions, and authorization. These constraints ensure the consistency of data and restrict the type of access users have on various data values in the database. 
 
-### Relational Databases 
+### Relational Databases
+
 Relational databases are using tables to represent data and relationships among that data. Each table has multiple columns with unique names, and record-based models organize data in fixed-format records of several types. SQL is the most common language used in commercial relational database systems, and it covers it in detail in Chapters 3, 4, and 5. The relational model can have schema design problems, such as unnecessarily duplicated information, which are discussed in Chapter 8.
 
 ![2](https://user-images.githubusercontent.com/124214430/226368671-27302650-6467-40e8-9c16-dcb4bd717ca8.png)
@@ -119,16 +123,14 @@ Relational databases are using tables to represent data and relationships among 
 
 The Data-Manipulation Language (DML) used in relational databases above, specifically the nonprocedural SQL query language. A query takes input from one or more tables and always returns a single table. An example SQL query is provided to illustrate how to retrieve data from a table.
 
-```
-            select instructor.name 
+```         select instructor.name
             from instructor 
             where instructor.dept name = ’History’;
 ```
 
 The expected result of running a specific SQL query on the tables in Figure 1.2. The query is designed to find the names of all instructors in the History department. The system would search the tables and find that there are two departments with a budget greater than $95,000: Computer Science and Finance. There are a total of five instructors in these departments, so the resulting table would have two columns (ID, dept name) and five rows listing the instructors in the two departments.
 
-```
-Create table department
+```Create table department
         (dept, name char (20), 
         building char (15),
         budget  numeric (12,2));
@@ -136,7 +138,8 @@ Create table department
 
 The Data-Definition Language (DDL) in SQL allows for the definition of tables and other database elements. The schema of a table is an example of metadata. SQL is not as powerful as a universal Turing machine and cannot support actions like input from users or output to displays, so application programs must be written in a host language like C, C++, or Java. DML statements can be executed from the host language either by providing an application program interface or by embedding DML calls within the host language program using a preprocessor like the DML precompiler.
 
-### Database Design and Data Storage and Querying 
+### Database Design and Data Storage and Querying
+
 Database design involves managing large amounts of information that are part of an enterprise's operation. The initial step in designing a database is to characterize fully the data needs of prospective database users. Next, a data model is chosen and the requirements are translated into a conceptual schema. The designer reviews the schema to confirm that all data requirements are satisfied and are not in conflict with one another. The final design phases involve mapping the conceptual schema onto the implementation data model of the database system that will be used and specifying the physical features of the database. An example of how a database for a university could be designed. The entity-relationship data model is discussed as a way to represent entities and relationships in a database.
 
 ![4](https://user-images.githubusercontent.com/124214430/226368609-4528b6b0-4cfc-4dfa-b879-27a51dbf27b3.png)
@@ -145,10 +148,12 @@ Two methods for designing a relational database: entity-relationship modeling an
 
 ![5](https://user-images.githubusercontent.com/124214430/226368552-380eaa34-9ab1-4aea-aa66-7d5674771bb6.png)
 
-### Transaction Management 
+### Transaction Management
+
 Two problems arise when designing databases, namely, the repetition of information and the inability to represent certain information. These problems can be resolved through normalization, which is a formal method of designing databases. The passage also explains the two main components of a database system, the storage manager, and the query processor. The storage manager is responsible for storing, retrieving, and updating data in the database, and its components include the authorization and integrity manager, transaction manager, file manager, and buffer manager. The query processor, on the other hand, simplifies access to data for database users. The passage also discusses the importance of minimizing the movement of data between disk and main memory, as well as the different data structures implemented by the storage manager, including data files, data dictionary, and indices.
 
 ### Database Architecture
+
 **The three main components:**
 
 * Query Processor
@@ -169,24 +174,29 @@ The DDL Interpreter interprets DDL statements and records the definitions in the
 
 The Database Architecture is greatly influenced by the underlying computer system on which the database system runs, and it includes centralized, client-server, parallel, and distributed databases. The book covers the general structure of modern computer systems, how various actions of a database can be implemented to exploit parallel processing, and how to deal with issues that arise in a distributed database.
 
-### Data Mining and Information Retrieval and Specialty Databases 
+### Data Mining and Information Retrieval and Specialty Databases
+
 Data mining is the process of analyzing large databases to find useful patterns, and information retrieval, which is the querying of unstructured textual data. Specialty databases, such as object-based data models and semistructured data models. Object-oriented programming concepts, such as encapsulation and inheritance, have been applied to data modeling. The object-relational data model is a combination of object-oriented and relational models. Semistructured data models allow for data with varying sets of attributes and are used in XML language. Chapters 20 to 23 cover these topics in more detail.
 
 ### Database Users and Administrators
+
 The different types of users who work with a database system, including users, application programmers, sophisticated users, and specialized users. Each type of user interacts with the system differently, using various user interfaces and tools. Additionally, the text explains the role of a database administrator (DBA), who has central control over the system, including creating and modifying the database schema, granting authorization for data access, and performing routine maintenance tasks like backing up the database and monitoring performance.
 
 ### History of Database Systems 
+
 The use of punched cards and mechanical systems were the precursors to automation of data processing tasks. In the late 1960s and 1970s, the use of hard disks led to the creation of network and hierarchical databases, and the introduction of the relational model by Codd. Although the relational model was not initially used due to perceived performance disadvantages, it became dominant in the 1980s. The 1990s saw the explosive growth of the World Wide Web, which necessitated database systems that supported high transaction-processing rates, reliability, and 24x7 availability. The 2000s saw the growth of XML and associated query language XQuery, as well as autonomic-computing/auto-admin techniques, and the use of open-source database systems like PostgreSQL and MySQL. The latter part of the decade saw the growth of specialized databases for data.
 
 # RELATIONAL DATABASES
+
 The importance of data models, with a focus on the relational model. The relational model uses tables to represent data and relationships, and is widely adopted in database products. To make data available to users, query languages like SQL have been developed, and data integrity and protection are also important issues. Chapters 3, 4, and 5 cover SQL, including integrity constraints and authorization mechanisms. Chapter 6 covers formal query languages based on mathematical logic, which form the basis for SQL and other user-friendly languages.
 
 ## Introduction to the Relational Model and Structure of Relational Databases
-The relational model is the primary data model for commercial data-processing applications because of its simplicity. It is made up of a collection of tables, where each table is assigned a unique name and consists of rows and columns. 
+
+The relational model is the primary data model for commercial data-processing applications because of its simplicity. It is made up of a collection of tables, where each table is assigned a unique name and consists of rows and columns.
 
 ![8](https://user-images.githubusercontent.com/124214430/226383016-532340b9-c340-482a-95a5-22cb11507604.png)
 
-A row in a table represents a relationship among a set of values, and each table is a collection of relationships. In the relational model, a relation is used to refer to a table, while the term tuple is used to refer to a row, and the term attribute refers to a column of a table. 
+A row in a table represents a relationship among a set of values, and each table is a collection of relationships. In the relational model, a relation is used to refer to a table, while the term tuple is used to refer to a row, and the term attribute refers to a column of a table.
 
 ![9](https://user-images.githubusercontent.com/124214430/226383067-345b1bed-c27e-461d-861a-fd75493d995d.png)
 
@@ -197,25 +207,23 @@ Each attribute of a relation has a set of permitted values, called the domain of
 ![11](https://user-images.githubusercontent.com/124214430/226383117-c060c33c-85fa-4c5c-a1b0-3915ef02c819.png)
 
 ### Database Schema
+
 The concept of database schema refers to the logical design of a database, and the database instance, which is a snapshot of the data in the database at a given instant in time. A relation schema consists of a list of attributes and their corresponding domains, while a relation instance corresponds to the value of a variable. 
 
 ![12](https://user-images.githubusercontent.com/124214430/226383163-4da92df0-5db2-42a6-8d0d-3f6a48769ba9.png)
 
-```
-department (dept name, building, budget)
+```department (dept name, building, budget)
 
 ```
 
-The schema of a relation generally does not change, whereas the contents of a relation instance may change as the relation is updated. 
+The schema of a relation generally does not change, whereas the contents of a relation instance may change as the relation is updated.
 
-```
-section (course id, sec id, semester, year, building, room number, time slot id)
+```section (course id, sec id, semester, year, building, room number, time slot id)
 ```
 
-Common attributes in relation schemas are used to relate tuples of distinct relations. 
+Common attributes in relation schemas are used to relate tuples of distinct relations.
 
-```
-teaches (ID, course id, sec id, semester, year)
+```teaches (ID, course id, sec id, semester, year)
 ```
 
 ![13](https://user-images.githubusercontent.com/124214430/226383188-00ae03bc-aeeb-4f92-8e1b-f5d2bf207f35.png)
@@ -231,19 +239,23 @@ Examples of different relation schemas and instances in a university database.
 ![14](https://user-images.githubusercontent.com/124214430/226383219-31fe4fa6-3d10-442c-8b1c-7aa5ce1c6612.png)
 
 ### Keys
+
 The concept of keys in database design is important for identifying tuples within a relation. A superkey is a set of one or more attributes that can uniquely identify a tuple in the relation, while a candidate key is a minimal superkey for which no proper subset is a superkey. A primary key is a candidate key chosen by the database designer as the principal means of identifying tuples within a relation. Primary keys should be chosen carefully, as they represent a constraint in the real-world enterprise being modeled, and should be unlikely to change. Foreign keys are attributes in a relation that reference the primary key of another relation. Referential integrity constraints require that the values appearing in specified attributes of any tuple in the referencing relation also appear in specified attributes of at least one tuple in the referenced relation.
 
 ### Schema Diagrams
+
 Schema diagrams are used to depict the structure of a database schema, including primary key and foreign key dependencies. Each relation is represented as a box with the relation name and attributes listed inside, and foreign key dependencies are shown as arrows. Other referential integrity constraints are not shown explicitly, but can be represented using entity-relationship diagrams. Many database systems provide graphical tools for creating schema diagrams. The example organization used in later chapters is a university, and its corresponding relational schema is provided in Figure 15.
 
 ![15](https://user-images.githubusercontent.com/124214430/226383272-93f8b3fa-6a57-43ce-bb57-4ea1a48c9d16.png)
 
 ### Relational Query Languages
+
 Query languages used to retrieve information from a database  can be procedural or nonprocedural. SQL is a widely used query language that incorporates elements of both approaches. Also, "pure" query languages are related to  the relational algebra, tuple relational calculus, and domain relational calculus. These languages are formal and lack the "syntactic sugar" of commercial languages but illustrate fundamental techniques for extracting data from a database. The relational algebra consists of a set of operations, while the relational calculus uses predicate logic to define desired results without giving specific procedures.
 
 ![16](https://user-images.githubusercontent.com/124214430/226383300-87669b52-de04-4ef3-9b96-05e104b4787b.png)
 
 ### Relational Operations
+
 Relational operations are a set of operations that can be applied to either a single relation or a pair of relations. The most frequent operation is selecting specific tuples from a single relation that satisfies a particular predicate.
 
 ![17](https://user-images.githubusercontent.com/124214430/226383333-7502f63a-a381-4d1a-a01c-fac572ae6d99.png)
@@ -259,20 +271,22 @@ The Cartesian product operation combines tuples from two relations, regardless o
 ![20](https://user-images.githubusercontent.com/124214430/226383407-0d96a0b8-22df-40aa-ae67-82586177c6ee.png)
 
 ## Introduction to SQL
+
 The chapter discusses various database query languages but focuses on the widely used SQL language. SQL can do more than just querying a database; it can also define data structure, modify data, and specify security constraints. The chapter covers SQL's fundamental concepts and constructs and acknowledges that individual SQL implementations may differ in details or support only a subset of the full language.
 
 
-### Overview of the SQL Query Language 
+### Overview of the SQL Query Language
+
 The SQL language was originally developed by IBM in the 1970s and has evolved into the standard relational database language. ANSI and ISO have published several versions of the SQL standard, including SQL-86, SQL-89, SQL-92, SQL:1999, SQL:2003, SQL:2006, and SQL:2008. The SQL language consists of various parts, including DDL, DML, integrity, view definition, transaction control, embedded SQL and dynamic SQL, and authorization. The chapter presents an overview of basic DML and DDL features of SQL, while Chapters 4 and 5 cover more advanced features. Although most SQL implementations support standard features, differences between implementations exist, and users should consult their database system's user manuals to determine which features are supported.
 
 
-### SQL Data Deﬁnition 
+### SQL Data Deﬁnition
+
 This passage discusses the importance of specifying the set of relations in a database through a data-definition language (DDL), and explains the different components that can be defined using SQL DDL, including the schema, types of values, integrity constraints, indices, security, and physical storage structure. The passage then goes on to describe the basic types supported by SQL, including char, varchar, int, smallint, numeric, real, double precision, and float. The concept of null values is also introduced. Finally, the passage discusses the differences between char and varchar types and recommends using varchar to avoid problems with extra spaces. The nvarchar type for storing multilingual data using Unicode representation is also briefly mentioned, as well as basic schema definition.
 
 We deﬁne an SQL relation by using the create table command. The following command creates a relation department in the database.
 
-```
-create table department
+```create table department
 (dept name varchar (20), 
 building varchar (15), 
 budget numeric (12,2),
@@ -281,8 +295,7 @@ primary key (dept name));
 
 An example of creating a relation in SQL with three attributes - dept name, building, and budget. The data types for these attributes are specified as character string of maximum length 20, character string of maximum length 15, and number with 12 digits in total, 2 of which are after the decimal point, respectively. The primary key for this relation is set to be the dept name attribute.
 
-```
-create table r 
+```create table r
         (A1 D1, 
         A2 D2, 
         ...,
@@ -292,9 +305,9 @@ create table r
         (integrity-constraintk));
 ```
 
-* SQL commands and constraints, the syntax of creating tables and defines various constraints such as primary key, foreign key, and not null. 
+* SQL commands and constraints, the syntax of creating tables and defines various constraints such as primary key, foreign key, and not null.
 * SQL prevents any updates to the database that violate an integrity constraint.
-* For exampleL insert command used to load data into a relation. 
+* For exampleL insert command used to load data into a relation.
 * Also, refers to a partial SQL DDL definition of the university database.
 
 We can use the delete command to delete tuples from a relation:
@@ -303,29 +316,26 @@ We can use the delete command to delete tuples from a relation:
 
 The delete command in SQL can be used to remove specific tuples from a relation or all tuples from the relation. The drop table command is used to remove a relation from the SQL database, deleting all information about it:
 
-```
-drop table r;
-```
-
-```
-delete from r;
+```drop table r;
 ```
 
-*   SQL commands for modifying the structure of a relation, including deleting tuples or dropping a relation entirely using the DELETE and DROP TABLE commands, respectively. 
-*   The ALTER TABLE command for adding attributes to an existing relation, with all tuples assigned null as the value for the new attribute.
-
+```delete from r;
 ```
-alter table r add AD;
+
+* SQL commands for modifying the structure of a relation, including deleting tuples or dropping a relation entirely using the DELETE and DROP TABLE commands, respectively.
+* The ALTER TABLE command for adding attributes to an existing relation, with all tuples assigned null as the value for the new attribute.
+
+```alter table r add AD;
 ```
 
 The alter table command allows us to add a new attribute to an existing relation named r, where A is the name of the attribute to be added and D is the type of the new attribute. In contrast, we can remove attributes from a relation using the drop command.
 
+```alter table r drop A;
 ```
-alter table r drop A;
-```
+
 In SQL, an attribute can be dropped from an existing relation by using the *alter table* command. However, many database systems do not support this functionality, and instead only allow an entire table to be dropped.
 
-### Basic Structure of SQL Queries 
+### Basic Structure of SQL Queries
 
 The basic structure of an SQL query consists of three clauses: select, from, and where. The query operates on the relations listed in the from clause, performs operations on them as specified in the where and select clauses, and produces a relation as the result.
 
@@ -333,32 +343,27 @@ The basic structure of an SQL query consists of three clauses: select, from, and
 
 In the case of a query on a single relation, the example given is to find the names of all instructors in the university example. The instructor relation is listed in the from clause and the name attribute is specified in the select clause.
 
-```
-select name 
+```select name
 from instructor;
 ```
 
 The basic structure of an SQL query consists of three clauses: select, from, and where. The select clause specifies the attributes of the relation to be displayed in the output, the from clause specifies the input relation, and the where clause is used for filtering the tuples. 
 
-
-```
-select dept name
+```select dept name
 from instructor;
 ```
 
 SQL allows duplicate tuples in relations and in the results of SQL expressions. In order to force the elimination of duplicates, the keyword "distinct" is inserted after select.
 
-```
-select distinct dept name 
+```select distinct dept name
 from instructor;
 ```
 
 ![23](https://user-images.githubusercontent.com/124214430/228469303-8d089028-869e-4cd3-bbf6-c15f57cb07ad.png)
 
-The SQL keyword "distinct" can be used to eliminate duplicates in query results, while "all" can be used to specify that duplicates should be retained. The select clause in SQL queries can include arithmetic expressions that involve mathematical operators and constants or attributes of tuples. 
+The SQL keyword "distinct" can be used to eliminate duplicates in query results, while "all" can be used to specify that duplicates should be retained. The select clause in SQL queries can include arithmetic expressions that involve mathematical operators and constants or attributes of tuples.
 
-```
-select all dept name 
+```select all dept name
 from instructor;
 ```
 
