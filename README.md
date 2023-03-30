@@ -1954,99 +1954,1119 @@ The combination of these operations can be used to extract meaningful data from 
 
 ![61](https://user-images.githubusercontent.com/124214430/228471482-9bd6937e-b433-4190-b3b4-146ee9bc5e60.png)
 
+In the realm of relational algebra, a crucial task is to assign a name to the results of expressions, as unlike database relations, they lack a distinct identifier. Fortunately, the rename operator, symbolized by the lowercase Greek letter rho, offers a means to do just that. Given a relational algebra expression E, the operator rx(E) generates the outcome of expression E under the name x. Interestingly, a relation r is also considered a trivial relational algebra expression, and thus the rename operation can be applied to r to obtain the same relation under a new name.
+
+Another form of the rename operation involves an expression E with arity n. In this case, rx(A1,A2,...,An)(E) yields the result of E under the name x and with the attributes renamed to A1, A2,..., An. An example of renaming a relation involves the query "Find the highest salary in the university." Our strategy involves computing a temporary relation of non-maximum salaries and then taking the set difference between the rsalary(instructor) relation and the temporary relation to obtaining the desired outcome.
+
+![Figure 64 - Result of the subexpressiont](64.png)
+
+To compute the temporary relation, a mechanism to differentiate between two salary attributes is necessary. The rename operation comes to the rescue, enabling one reference to the instructor relation to be renamed, permitting the relation to be referenced twice without ambiguity. The temporary relation comprises salaries that are not the largest, and the resulting expression is given by:
+
+```Ninstructor.salary(Qinstructor.salary < d.salary(instructor × pd(instructor)))
+
+To find the highest salary in the university, the expression:
+
+Nsalary(instructor) −
+Ninstructor.salary(instructor.salary < d.salary(instructor × Rd(instructor)))
+```
+
+![Figure 65 - Highest salary in the university](65.png)
+
+is employed. The rename operation is not obligatory, as positional notation can be used instead to refer to attributes of a relation. Here, $1, $2,... refer to the first, second, and subsequent attributes. While this notation can also be applied to the results of relational-algebra operations, it is often cumbersome and inconvenient for humans to use. As such, we avoid it in this textbook.
+
+As we delve deeper into the fundamentals of relational algebra, we find that a basic expression in this realm consists of either a relation in the database or a constant relation that is explicitly stated. The latter is represented by listing the tuples within braces, much like a set. For instance, a constant relation would appear as { (22222, Einstein, Physics, 95000), (76543, Singh, Finance, 80000) }.
+
+![Figure 66 - Courses offered in both the Fall 2009 and Spring 2010 semesters](66.png)
+
+To construct a general expression in relational algebra, we utilize smaller sub-expressions. Two relational-algebra expressions, E1 and E2, can be used to construct a range of relational-algebra expressions, including union, difference, cross-product, selection with a predicate, projection with a list of attributes, and renaming.
+
+Although the fundamental operations of relational algebra are powerful enough to address any relational algebra query, we encounter some queries that become lengthy to express. Therefore, we define additional operations that, while not adding any power to the algebra, simplify common queries. Each new operation is given with an equivalent expression that uses only the fundamental operations.
+
+One of these new operations is a set intersection, denoted by the symbol "∩". By utilizing set intersection, we can write simpler queries for finding the set of all courses taught in both the Fall 2009 and the Spring 2010 semesters, as well as for other similar cases. Interestingly, any relational-algebra expression that uses a set intersection can be rewritten using a pair of set-difference operations.
+
+```Pcourse id (Qsemester = “Fall” ∧ year=2009 (section)) ∩
+Pcourse id (Qsemester = “Spring” ∧ year=2010 (section))
+```
+
+Another new operation is the natural join, denoted by the symbol "⨝". This operation allows us to combine certain selections and a Cartesian product into one operation. The natural-join operation forms a Cartesian product of its two arguments, performs selection-forcing equality on those attributes that appear in both relation schemas and removes duplicate attributes. The resulting relation is smaller and contains only those tuples that give information about an instructor and a course that the instructor actually teaches. The natural join is an essential operation that simplifies many queries involving Cartesian products.
+
+The relational-algebraic expression, in all its elegance, can be made even more palatable through the use of the assignment operation. This operation, denoted by the symbol ←, enables the parts of the expression to be assigned to temporary relation variables for the sake of convenience. In a manner akin to assignment in a programming language, the result of the expression to the right of the ← is assigned to the relation variable on the left of the ←, with no relation being displayed to the user. The beauty of this approach lies in its ability to create a sequential program of assignments followed by an expression that displays the value of the query's result. It is important to note that assignments in relational algebra queries must always be made to a temporary relation variable, as assignments to permanent relations constitute a modification of the database. Though it does not add any additional power to the algebra, the assignment operation remains a valuable tool for expressing complex queries with ease.
+
+The outer-join operation proves to be a vital extension of the join operation by catering to instances of missing information. When tuples in either of the relations being joined are not part of the join's result due to non-matching, the outer join operation comes to the rescue. There are three variations of the outer join operation, namely left outer join, right outer join, and full outer join, each with a distinct approach to preserving lost tuples.
+
+The left outer join operation takes all the tuples in the left relation that do not have a matching tuple in the right relation, fills in the attributes from the right relation with null values, and adds these tuples to the natural join result. On the other hand, the right outer join operation pads tuples from the right relation with nulls and adds them to the result of the natural join when there is no match in the left relation. The full outer join operation performs both left and right outer joins, adding tuples from the left relation and the right relation that do not match the result of the join.
+
+It is worth noting that outer-join operations have the potential to generate results containing null values. Thus, it becomes essential to specify how different relational-algebra operations treat null values. However, it is fascinating to observe that outer-join operations can be expressed by the basic relational-algebra operations. For example, the left outer join operation, r x s, can be expressed as (r x s) U (r - PR(r X s)) ×{(null,..., null)}, where the constant relation {(null,..., null)} is on the schema S - R. Overall, the outer-join operation plays a pivotal role in preserving lost tuples and filling the gaps in the join operation.
+
+In the realm of relational algebra operations, two extensions provide further functionality that is not possible with the basic set of operations. These are the generalized projection and aggregate operations, which offer the ability to incorporate arithmetic and string functions, as well as aggregate functions such as min and average respectively.
+
+The generalized-projection operation takes an algebraic expression E and a list of arithmetic expressions F1 through Fn that consist of constants and attributes of E and generates a new relationship that includes the projected attributes with any arithmetic operations applied to them. For example, the expression "PID, name, dept name,salary÷12(instructor)" would yield a new relation containing the ID, name, department name, and monthly salary of each instructor.
+
+Aggregate operations, on the other hand, take a collection of values and return a single value based on a given function. Common aggregate functions include sum, average, count, min, and max, and can be applied to multisets of values where duplicates are not eliminated, or to sets of values where duplicates are removed. The calligraphic G symbol denotes the use of aggregation, with a subscript indicating the specific function to be applied. For instance, "Gsum(salary)(instructor)" returns a relation with a single attribute containing the sum of all instructors' salaries.
+
+In addition, aggregation can be applied to groups of sets of tuples, where the resulting relation contains a single row for each group and a column for each attribute. The expression "dept.nameGaverage(salary)(instructor)" groups the tuples in the instructor relation by department name, calculates the average salary for each group and returns a relation with a single row for each department containing the department name and average salary.
+
+![Figure 73 - Tuples of the instructor relation, grouped by the dept name attribute](73.png)
+
+These operations provide further power to the relational-algebra language, enabling more complex queries and analyses to be performed on relational databases.
+
+![Figure 74 - The result relation for the query “Find the average salary in each department”](74.png)
+
 ### The Tuple Relational Calculus
+
+To express a query in the tuple relational calculus, we use the notation {t | P(t)}, which represents the set of all tuples t such that predicate P is true for t. By using t[A] to denote the value of tuple t on attribute A, and t ∈ r to denote that tuple t is in relation r, we can write queries such as "Find the ID, name, dept name, salary for instructors whose salary is greater than $80,000" as {t | t ∈ instructor ∧ t[salary] > 80000}.
+
+To express more complex queries, we need to use the "there exists" construct from mathematical logic. For instance, to find the instructor ID for each instructor with a salary greater than $80,000, we use the notation {t |∃ s ∈ instructor (t[ID] = s[ID] ∧ s[salary] > 80000)}, which reads as "The set of all tuples t such that there exists a tuple s in relation instructor for which the values of t and s for the ID attribute are equal, and the value of s for the salary attribute is greater than $80,000."
+
+![Figure 75 - Names of all instructors whose department is in the Watson building](75.png)
+
+Similarly, queries involving multiple relations can be expressed using multiple "there exists" clauses connected by the logical operator "and." For example, to find the names of all instructors whose department is in the Watson building, we can use the notation {t |∃ s ∈ instructor (t[name] = s[name] ∧∃ u ∈ department (u[dept name] = s[dept name] ∧ u[building] = “Watson”))}.
+
+Finally, we can use the logical operator "or" to find the set of all courses taught in the Fall 2009 semester, the Spring 2010 semester, or both. If we want only those course id values for courses that are offered in both the Fall 2009 and Spring 2010 semesters, we simply change the "or" to "and" in the preceding expression.
+
+With these powerful tools at our disposal, we can now tackle more complex queries, such as "Find all the courses taught in the Fall 2009 semester but not in Spring 2010 semester," using the "not" symbol to exclude the courses offered in both semesters. The tuple relational calculus offers a concise and expressive language for querying relational databases, allowing us to uncover insights and patterns hidden in the data.
+
+Tuple-relational calculus is a powerful tool for expressing queries. However, it is not without its limitations. In order to ensure that queries are both meaningful and computable, we must impose certain constraints on their structure.
+
+At the heart of tuple-relational calculus is the concept of a formula, which, takes the form {t|P(t)}. Here, P is a formula consisting of atoms, which can be either relational expressions or comparisons involving tuple variables and constants. Tuple variables may be bound or free, depending on whether they are quantified by a logical operator.
+
+In order to avoid the problem of infinite relations, we must ensure that all expressions are "safe," meaning that their domain (the set of values referenced by the formula) is finite. This is accomplished by imposing restrictions on the structure of the formula, such as disallowing expressions that generate infinite relations.
+
+In the realm of relational databases, the expressive power of languages is a topic of great interest and significance. In particular, the tuple relational calculus, when restricted to safe expressions, has been found to be equally expressive as the basic relational algebra. This equivalence holds for all fundamental relational algebraic operations, including union, difference, cartesian product, selection, and projection. It is important to note that this result excludes extended relational operations, such as generalized projection and aggregation.
+
+Remarkably, every relational algebraic expression that employs only the basic operations has an equivalent expression in the tuple relational calculus. Moreover, the converse is also true, and every tuple-relational-calculus expression has an equivalent relational-algebra expression. While the proof of this equivalence is beyond the scope of our present discussion, we point interested readers to the bibliographic notes for relevant references. Some crucial aspects of the proof are included in the exercises.
+
+Notably, the tuple relational calculus does not have any direct equivalent of the aggregate operation, but it can be extended to support aggregation. Furthermore, extending the tuple relational calculus to handle arithmetic expressions is a straightforward matter. Overall, these findings highlight the rich and flexible nature of relational database languages and the fascinating interplay between different formalisms in this domain.
 
 ### The Domain Relational Calculus
 
+Domain Relational Calculus, a prominent method for querying databases, diverges from its sibling, Tuple Relational Calculus, by utilizing domain variables that represent values from an attribute's domain rather than an entire tuple's values. Despite their differences, Domain and Tuple Relational Calculus are closely linked. The former acts as the theoretical foundation for the commonly employed QBE language, while the latter forms the basis of the widely utilized SQL language.
+
+The domain relational calculus is an important tool for expressing queries. This form of calculus uses domain variables that take on values from an attribute's domain, rather than values for an entire tuple. To better understand this calculus, it's helpful to consider its formal definition.
+
+An atom is a formula.
+If P1 is a formula, then so are ¬P1 and (P1).
+If P1 and P2 are formulae, then so are P1 ∨ P2, P1 ∧ P2,and P1 ⇒ P2.
+If P1(x) is formulaic x, where x is a free domain variable, then ∃ x (P1(x)) and ∀ x (P1(x)) are also formulae.
+It's worth noting that this calculus serves as the theoretical basis of the popular QBE language, just as relational algebra serves as the basis for SQL. By understanding the formal definition of the domain relational calculus and the rules for building up formulae, one can effectively query databases and retrieve the information they need.
+
+As we delve further into the world of database systems, we encounter a realm where queries reign supreme. In the pursuit of extracting information from databases, it is essential to understand the intricacies of the domain of relational calculus. This calculus, much like its tuple-based counterpart, involves a language for expressing queries over relations. In the pursuit of clarity, we provide examples of domain-relational-calculus queries that mirror those written in tuple calculus, highlighting their similarities.
+
+However, we must note a crucial difference between these two forms of calculus. In tuple calculus, we can readily bind a variable to a relation using the symbol "∈". In contrast, domain calculus does not bind variables to tuples but rather to domain values. This subtlety is significant because the domain of a variable is unconstrained until the subformula "∈ instructor" restricts it to a specific domain.
+
+As we progress in our study, we encounter queries that can result in infinite relations, causing a roadblock to our quest for understanding. Therefore, it is essential to define safety rules to prohibit such expressions. In domain calculus, we must also pay heed to the form of subformulas within "there exists" and "for all" clauses. Our quest for safe expressions leads us to add further restrictions to ensure we can test subformulas without having to consider an infinite number of possibilities.
+
+Thus, in our pursuit of knowledge, we must balance the elegance of calculus with the necessary rules to ensure we can safely extract information from databases.
+
 # DATABASE DESIGN
+
+In a world where information is king, the design and management of database systems are critical to the success of modern enterprises. These systems handle vast amounts of data that are intimately intertwined with the operations of the organization, whether it be for the production of information products or the support of essential devices and services.
+
+The first two chapters of this section delve into the essential building blocks of database schema design. Specifically, Chapter 7 explores the entity-relationship (E-R) model, a high-level data model that identifies and organizes basic objects, or entities, and the relationships between them. This model represents a crucial first step toward developing a comprehensive and effective database schema.
+
+However, relational database design - the creation of a relational schema - is equally important and often more complex. Chapter 8 introduces several "normal forms" that help distinguish well-designed schemas from those that may be prone to inconsistencies and inefficiencies. These forms provide a framework for optimizing query performance while maintaining data integrity.
+
+To design a complete and effective database application environment that meets the needs of a modern enterprise, a host of additional issues must be addressed. Chapter 9 delves into some of the most critical of these topics, including the design of user interfaces and multi-layered system architectures, which form the foundation for large-scale applications. Additionally, the chapter provides a comprehensive exploration of security at both the application and database levels, ensuring that sensitive data is protected from unauthorized access or compromise.
 
 ## Database Design and the E-R Model
 
+As we delve deeper into the intricacies of database systems, it becomes imperative to comprehend the nuances of database schema design. In order to effectively capture the essence of the database and its interrelated components, it is crucial to have a solid understanding of the entity-relationship (E-R) model. This model is a potent tool for identifying the entities that are part of the database and the relationships that bind them together.
+
+This chapter elucidates the key concepts of the E-R model, highlighting its significance in relation to a robust database schema design. The crux of the matter is to transform the E-R design into a set of relation schemas and to capture the constraints that govern those relations. The next chapter deals with the analysis of the set of relation schemas, using a broader range of constraints to determine whether it is a good or bad database design.
+
+It is imperative that one has a solid understanding of the fundamental principles of database design. These two chapters not only provide a comprehensive overview of the process but also equip the reader with the necessary knowledge to create a robust and effective database schema design.
+
 ### Overview of the Design Process
+
+In the complex and multifaceted task of creating a database application, the needs of users take center stage. This entails designing the database schema, as well as the programs that access and update the data, and a security scheme to regulate access. In this chapter, the focus is on the design of the database schema, while also briefly outlining some of the other tasks that lie ahead.
+
+To design a complete database application environment that meets the needs of the enterprise being modeled, one must be attuned to a wide range of issues. These issues have a bearing on various design choices at the physical, logical, and view levels. Therefore, attention must be paid to these aspects of the expected use of the database in order to create an effective and comprehensive design.
+
+The process of designing a database application is an intricate and multifaceted task that involves various phases. While creating a small-scale application may allow for a straightforward approach to designing the database schema, real-world applications are far more complex and necessitate extensive interaction between the database designer and application users to understand and represent the data requirements of the enterprise being modeled. The first phase of database design involves characterizing the data needs of the prospective database users, which entails interacting extensively with domain experts and users to obtain a comprehensive specification of user requirements.
+
+Once the user requirements are established, the designer then selects a data model and translates these requirements into a conceptual schema of the database. The entity-relationship model is a common method for representing the conceptual design, which specifies the entities, attributes, relationships, and constraints of the database. At this stage, the designer's focus is on describing the data and their relationships, rather than specifying physical storage details.
+
+The conceptual schema also indicates the functional requirements of the enterprise, which describe the operations or transactions that will be performed on the data. The next phase involves mapping the high-level conceptual data model to a logical data model, typically the relational data model, and mapping the conceptual schema defined using the entity-relationship model into a relation schema. Finally, the resulting system-specific database schema is used in the physical-design phase, which specifies the physical features of the database, including the form of file organization and choice of index structures.
+
+It is crucial to design the database schema with care, as changes to the logical schema may affect a number of queries and updates scattered across application code. The physical schema can be changed relatively easily after an application has been built, but logical schema changes require greater effort and should be avoided if possible. Therefore, the database design phase should be conducted thoroughly before building the rest of the database application to ensure that all data requirements are satisfied and redundant features are removed.
+
+The art of designing a database schema is not to be underestimated, as it requires careful consideration of the many entities and relationships within an enterprise. These entities must be identified and represented in the design, with each one related to the others in a way that captures the complexity of the enterprise. However, in doing so, we must be wary of two major pitfalls that can lead to poor design: redundancy and incompleteness.
+
+Redundancy occurs when information is needlessly repeated, leading to potential inconsistencies if updates are not made uniformly. For example, if we store the course identifier and title with each course offering, we redundantly store the title with every offering. Instead, it suffices to store only the identifier with each offering and associate the title with the identifier in a course entity. Incompleteness, on the other hand, occurs when certain aspects of the enterprise cannot be modeled due to inadequate design. If we only have entities corresponding to course offerings and not to courses themselves, we cannot represent information about a new course unless it is already being offered. This leads to problematic design and workarounds that are often unattractive and impractical.
+
+Avoiding bad designs is just the beginning, however. There may be a plethora of good designs to choose from, each with its own set of trade-offs. For instance, when a customer buys a product, is the sale itself a relationship between the customer and the product, or is the sale an entity that relates to both the customer and the product? The choice made here can have important implications for the overall design.
+
+Ultimately, database design is a challenging problem that requires both scientific and artistic sensibilities. It is a task that demands a deep understanding of the enterprise being modeled, as well as an appreciation for the elegance and simplicity of good design.
 
 ### The Entity-Relationship Model
 
+The Entity-Relationship (E-R) data model is a powerful tool in the field of database design. Its purpose is to provide a clear and concise representation of the logical structure of a database by mapping real-world entities and relationships onto a conceptual schema. This has made it a widely-used and popular approach for database design.
+
+The E-R data model is based on three fundamental concepts: entity sets, relationship sets, and attributes. These concepts allow for the creation of a comprehensive schema that accurately represents the interactions and meanings of an enterprise. In addition, the E-R model has a graphical representation, the E-R diagram, which helps designers visualize the structure of the database.
+
+The E-R data model has revolutionized the field of database design, providing a powerful framework for accurately representing complex relationships and entities in a logical and efficient manner. Its widespread use is a testament to its effectiveness and usefulness in the field.
+
+The entity-relationship (E-R) data model is an invaluable tool for creating a conceptual schema that accurately maps the interactions of real-world enterprises. Comprised of three core concepts, namely entity sets, relationship sets, and attributes, the E-R model is a powerful framework for designing databases. In particular, entity sets represent distinct "things" or "objects" in the real world that can be identified by a set of properties, or attributes. Whether concrete (e.g. people or books) or abstract (e.g. courses or reservations), entity sets share the same attributes and is grouped into collections, or extensions.
+
+For instance, a university database may include the entity sets of instructors and students, with attributes such as ID, name, department, and salary for instructors, and ID, name, major, and GPA for students. These entity sets need not be disjoint; a person can be both an instructor and a student, or neither. Attributes describe the properties possessed by each member of an entity set, with each entity having its own unique value for each attribute. The ID attribute is typically used to uniquely identify entities within a set, and databases consist of a collection of entity sets that may include dozens of distinct collections.
+
+Ultimately, the entity-relationship model is a powerful tool for conceptualizing complex databases and designing schema that accurately reflects the interactions of real-world enterprises. Through the use of entity sets, attributes, and relationship sets, database designers can create an intuitive and robust data model that captures the essence of complex data structures.
+
+![Figure 76 -  Entity sets instructor and student](75.png)
+
+The notion of a relationship takes center stage. A relationship is a connection between several entities that helps to make sense of the data being modeled. At its core, a relationship is a mathematical relation on n ≥ 2 (possibly nondistinct) entity sets. When multiple relationships of the same type exist, they can be grouped together as a relationship set.
+
+![Figure 77 -  Relationship set advisor](76.png)
+
+Consider, for example, the two entity sets of instructor and student, which can be linked together through a relationship set called advisor. This relationship set captures the connection between a specific instructor and a specific student, thus formalizing the advisory role of the instructor to the student. Similarly, a relationship set takes can link the entity sets of students and sections to represent the enrollment of students in specific course sections.
+
+The concept of participation plays a critical role in relationship sets. This refers to the involvement of entity sets in the relationship set. Each entity set plays a role in the relationship, which helps clarify the meaning of the relationship. In cases where the entity sets in the relationship set are not distinct, explicit role names are necessary to specify how the entity participates in a relationship instance.
+
+Descriptive attributes can also be associated with relationships, such as the date an instructor became an advisor to a student. A relationship instance must be uniquely identifiable from its participating entities, without the use of descriptive attributes.
+
+![Figure 78 -  Date as attribute of the advisor relationship set](77.png)
+
+In many cases, multiple relationship sets involving the same entity sets can exist. Binary relationship sets are the most common, but there are cases where a relationship set may involve more than two entity sets. The modeling of relationships in database systems is a complex task, but a crucial one for creating accurate and useful databases.
+
+In the realm of database design, the attributes of an entity set play a crucial role in representing real-world objects and their characteristics. In the context of the E-R model, each attribute is associated with a domain of permitted values, which defines the set of valid values for that attribute. For example, the domain of the "course id" attribute might be a set of text strings of a particular length, while the domain of the "semester" attribute might be a set of strings from the set {Fall, Winter, Spring, Summer}.
+
+In the E-R model, an attribute is a function that maps from an entity set into a domain, allowing each entity to be described by a set of (attribute, data value) pairs. These pairs represent the values of each attribute for a given entity, providing a significant portion of the data stored in the database.
+
+Attributes in the E-R model can be characterized by several types, including simple and composite attributes, single-valued and multivalued attributes, and derived attributes. Simple attributes represent indivisible, atomic values, while composite attributes can be divided into subparts. Single-valued attributes have a single value for each entity, while multivalued attributes can have a set of values for a specific entity. Derived attributes can be derived from other attributes or entities, with the value being computed when required.
+
+![Figure 79 -  Composite attributes instructor name and address](78.png)
+
+An attribute can also take a null value, indicating that the entity does not have a value for that attribute. Null values can signify "not applicable" or "unknown," and they play an important role in handling missing or incomplete data.
+
+Overall, the attributes of an entity set provide a rich and nuanced representation of the characteristics of real-world objects, enabling powerful database modeling and analysis capabilities.
+
 ### Constraints
+
+Constraints play a crucial role in ensuring data integrity and consistency. An essential aspect of constraints is mapping cardinalities, which express the relationship between entities in a database. While mapping cardinalities are most commonly used for binary relationship sets, they can also apply to more complex relationship sets involving multiple entity sets.
+
+For a binary relationship set, the mapping cardinality can be classified as one-to-one, one-to-many, many-to-one, or many-to-many. The choice of mapping cardinality depends on the specific real-world situation that the relationship set represents. Take, for example, the advisor relationship set in a university. If a student can only be advised by one instructor, and an instructor can advise several students, then the relationship set from instructor to student is one-to-many. On the other hand, if a student can be advised by multiple instructors, as is the case with joint advising, the relationship set becomes many-to-many.
+
+![Figure 80 -  Mapping cardinalities. (a) One-to-one. (b) One-to-many](79.png)
+
+![Figure 81 -  Mapping cardinalities. (a) Many-to-one. (b) Many-to-many](80.png)
+
+Mapping cardinalities are a powerful tool for designing databases that accurately reflect the relationships between entities in the real world. By understanding mapping cardinalities, designers can ensure that their databases maintain data integrity and consistency, allowing for more accurate and efficient data processing.
+
+The art of database design involves more than just defining entities and their relationships. One key aspect is setting constraints to ensure that the contents of the database adhere to certain standards. In this vein, mapping cardinalities and participation constraints serve as powerful tools to govern relationships among entity sets.
+
+Mapping cardinalities are ratios that describe how many entities can be associated with another entity through a relationship set. While binary relationship sets are the most amenable to mapping cardinalities, they can also be applied to more complex sets involving more than two entity sets. For binary relationship sets, four mapping cardinalities exist one-to-one, one-to-many, many-to-one, and many-to-many. The choice of which mapping cardinality to use depends on the particulars of the real-world scenario being modeled.
+
+Participation constraints, on the other hand, refer to the degree to which an entity set participates in a relationship set. If every entity in an entity set participates in at least one relationship in a relationship set, the participation is total. If only some entities in the entity set participate, the participation is partial. For instance, in the advisor relationship set, we would expect every student entity to have at least one corresponding instructor entity, making the participation total for students. In contrast, instructors need not advise any students, rendering participation partial for instructors. By setting participation constraints, database designers can ensure data consistency and reduce the risk of data corruption.
+
+The ability to distinguish entities from one another is of paramount importance. Entities may seem distinct on a conceptual level, but from a database perspective, it is crucial to express their differences in terms of their attributes. To this end, we require a set of attribute values that can uniquely identify each entity. Thus, the notion of a key, as previously defined for relation schemas, applies to entity sets as well.
+
+A key for an entity is a set of attributes that can distinguish one entity from another. The concepts of superkey, candidate key, and primary key, which are fundamental to relation schemas, are also applicable to entity sets. Keys are essential to identifying relationships uniquely, and thereby distinguishing one relationship from another.
+
+For instance, let us consider a relationship set R, involving entity sets E1, E2,..., En. If primary-key(Ei) denotes the set of attributes that form the primary key for entity set Ei, then the composition of the primary key for relationship set R is determined by the set of attributes associated with R. If R has no attributes associated with it, then the set of attributes primary-key(E1) ∪ primary-key(E2) ∪··· ∪ primary-key(En) describes a unique relationship in set R.
+
+On the other hand, if R has attributes a1, a2,..., am associated with it, then the set of attributes primary-key(E1) ∪ primary-key(E2) ∪··· ∪ primary-key(En) ∪{a1, a2,..., am} describes an individual relationship in set R. In both of the above cases, the set of attributes primary-key(E1) ∪ primary-key(E2) ∪··· ∪ primary-key(En) forms a superkey for the relationship set.
+
+However, if the attribute names of primary keys are not unique across entity sets, they are renamed to distinguish them. If an entity set participates more than once in a relationship set, the role name is used instead of the name of the entity set to form a unique attribute name.
+
+The structure of the primary key for the relationship set is determined by the mapping cardinality of the relationship set. The primary key of advisor, a relationship set involving entity sets instructor and student with attribute date, is the union of the primary keys of instructor and student if the relationship set is many-to-many. If the relationship is many-to-one from student to instructor, then the primary key of the advisor is simply the primary key of the student. Similarly, if an instructor can advise only one student, then the primary key of the advisor is simply the primary key of the instructor. For one-to-one relationships, either candidate key can be used as the primary key.
+
+While the choice of the primary key for non-binary relationships is straightforward when no cardinality constraints are present, it becomes more complicated in the presence of such constraints. However, as we have not yet discussed how to specify cardinality constraints on non-binary relationships, we defer this discussion to later chapters.
 
 ### Removing Redundant Attributes in Entity Sets
 
+In designing a database using the E-R model, selecting the appropriate entity sets and their corresponding attributes is crucial. The choice of attributes lies in the hands of the designer, who possesses a good understanding of the structure of the enterprise. However, the relationship sets among various entities may result in redundant attributes, which should be removed from the original entity sets.
+
+For instance, consider the entity sets instructor and department. Both contain the attribute dept name, with the dept name serving as the primary key for the department entity set. Therefore, the dept name is redundant in the instructor entity set and should be removed. While this may appear counterintuitive, treating the connection between instructors and departments uniformly as a relationship makes the logical relationship explicit and avoids premature assumptions.
+
+Similarly, the student entity set is related to the department entity set through the relationship set student dept, eliminating the need for a dept name attribute in the student entity set. Another example involves the entity sets section and time slot, which share the attribute time slot id. Since time slot id is the primary key for the entity set time slot, it is redundant in the entity set section and should be removed.
+
+Finally, redundant attributes can also exist within the same entity set. For instance, the entity set section contains the attributes building and room number, which are also present in the related entity set classroom. Thus, these attributes are redundant and should be removed from the section entity set.
+
+By avoiding redundant attributes in entity-relationship design, we can create a streamlined and efficient database. For the university example discussed in this article, a comprehensive list of entity sets and relationship sets has been provided, showcasing a well-designed database free of redundant attributes.
+
 ### Entity-Relationship Diagrams
+
+Entity-Relationship Diagrams (ERDs) are graphical representations of the logical structure of a database that utilize simple and clear components to achieve widespread usage. ERDs consist of entity sets, relationship sets, and attributes, which are linked together by lines and arrows to specify the nature of the relationships between entities.
+
+![Figure 82 -  E-R diagram corresponding to instructors and students](81.png)
+
+By mapping cardinality, ERDs can further indicate the number of times each entity participates in relationships within a relationship set. It is important to note that the placement of arrows in a relationship set indicates the nature of the relationship between the entity sets. One-to-one, one-to-many, many-to-one, or many-to-many relationships can be represented with either a directed or undirected line, depending on the cardinality. ERDs can also specify minimum and maximum cardinalities, with minimum values of 1 indicating total participation, maximum values of 1 indicating at most one relationship, and maximum values of * indicating no limit.
+
+![Figure 83 -  E-R diagram with an attribute attached to a relationship set](82.png)
+
+![Figure 84 -  Relationships. (a) One-to-one. (b) One-to-many. (c) Many-to-many](83.png)
+
+Overall, ERDs provide a useful tool for visualizing and designing complex databases.
+
+To aid in understanding this concept, a visual representation of composite attributes in the E-R notation is. Here, the attribute "instructor" is replaced by the composite attribute "name", which consists of three component attributes: first name, middle initial, and last name.
+
+Another example is given in the case of adding an address attribute to the instructor entity set. The composite attribute "address" is defined, as consisting of four component attributes: street, city, state, and zip code. Further complexity arises as the street attribute itself is a composite attribute, comprised of three component attributes: street number, street name, and apartment number.
+
+![Figure 85 -  Cardinality limits on relationship sets](84.png)
+
+As if this wasn't enough, the figure above also depicts two other attribute types: multivalued and derived attributes. The former, denoted by "{phone number}", indicates an attribute that can have multiple values for a single entity. The latter, represented by "age()", is an attribute that is not stored in the database but instead calculated from other attributes.
+
+![Figure 86 -  E-R diagram with composite, multivalued, and derived attributes](85.png)
+
+In E-R diagrams, roles can be identified by marking the lines connecting diamonds to rectangles. The image presented in the figure above demonstrates this approach, where the course entity set and the prereq relationship set are linked by role indicators such as course id and prereq id.
+
+![Figure 87 -  E-R diagram with role indicators](86.png)
+
+![Figure 88 -  E-R diagram with a ternary relationship](87.png)
+
+In the realm of entity-relationship (E-R) diagrams, roles can be designated by the labels attached to lines linking diamonds to rectangles. This is illustrated in the Figure below, where the roles of course id and prereq id are indicated by labels on the line between the course entity set and the prereq relationship set.
+
+Nonbinary relationship sets, which involve more than two entity sets, can also be depicted in E-R diagrams. Figure 7.13 showcases an example involving three entity sets: instructor, student, and project. These sets are interconnected through the proj guide relationship set.
+
+It's worth noting that certain types of many-to-one relationships can be specified in the context of nonbinary relationship sets. For instance, if a student can have no more than one instructor as a project guide, this constraint can be represented by an arrow pointing to the instructor on the edge from proj guide. However, to avoid ambiguity, we allow at most one arrow out of a relationship set, since diagrams with multiple arrows can be interpreted in different ways. We delve into functional dependencies, which provide a means of unambiguously specifying these complex relationships.
+
+In the world of database design, the concept of weak entity sets stands out as a particularly nuanced and intricate topic, one that requires a keen eye for detail and a deep understanding of the interrelationships between data entities. At its core, a weak entity set is an entity set that lacks the necessary attributes to form a primary key, and as such, it must be associated with another entity set, known as the identifying or owner entity set, to derive its unique identity.
+
+To fully appreciate the complexity of this concept, we must delve deeper into the inner workings of weak entity sets. Take, for example, the case of a section entity, which is uniquely identified by a course identifier, semester, year, and section identifier. At first glance, section entities appear to be related to course entities, and so we create a relationship set between section and course entity sets.
+
+However, upon closer inspection, we find that the information in this relationship set is redundant, as the section already has an attribute that identifies the course with which it is related. To address this redundancy, we could simply remove the relationship, but doing so would result in an implicit relationship between section and course, which is not desirable.
+
+Instead, we must find a way to store the necessary information in a more efficient and meaningful way. One option is to remove the course ID attribute from the section entity and only store the remaining attributes. However, this approach presents a new problem, as the section entity would no longer have enough attributes to identify a specific section entity uniquely.
+
+To solve this issue, we treat the relationship between section and course as a special relationship that provides the extra information required to identify section entities uniquely. This is where the concept of the weak entity set comes into play.
+
+A weak entity set is an entity set that lacks sufficient attributes to form a primary key and must be associated with an identifying entity set to derive its unique identity. The identifying entity set is said to own the weak entity set that it identifies, and the relationship associating the two entity sets is known as the identifying relationship.
+
+![Figure 89 -  E-R diagram with a weak entity set](88.png)
+
+In the case of section and course, the course is the identifying entity set for section, and the relationship between the two, known as sec course, is the identifying relationship. The discriminator of a weak entity set is a set of attributes that allows us to distinguish among all the entities in the weak entity set that depend on one particular strong entity.
+
+In the case of the section, the discriminator consists of the attributes sec id, year, and semester. The primary key of a weak entity set is formed by the primary key of the identifying entity set plus the weak entity set's discriminator.
+
+As we can see, the concept of weak entity sets is a nuanced and complex topic that requires a deep understanding of database design principles. However, by mastering this concept, we can create more efficient and meaningful database structures that better represent the relationships between data entities.
+
+In a stunning demonstration of conceptual modeling, the authors present an E-R diagram that encapsulates the intricate workings of a university enterprise. This diagram, which is equivalent to the textual description of the university E-R model presented earlier in the text, is enriched with several additional constraints that underscore the complexity of this domain.
+
+![Figure 90 -  E-R diagram for a university enterprise](89.png)
+
+Of particular note is the constraint that mandates each instructor to have exactly one associated department, which is represented by a double line between instructor and inst dept, indicating total participation of instructor in inst dept. Moreover, the diagram reveals that each instructor can have at most one associated department, as depicted by the arrow from inst dept to department.
+
+Similarly, the course and student entities have double lines to relationship sets course dept and stud dept, respectively, while the section is now a weak entity set, with attributes sec id, semester, and year forming the discriminator. In a masterful stroke of design, the sec course is the identifying relationship set that relates the weak entity set section to the strong entity set course.
+
+Notably, the relationship set takes has a descriptive attribute grade, and each student has at most one advisor. The authors tantalize readers with the promise that, they will unveil how this E-R diagram can be harnessed to derive the various relation schemas used in the enterprise. Truly, a tour de force of conceptual modeling that leaves readers eagerly anticipating what lies ahead.
 
 ### Reduction to Relational Schemas
 
+In the world of database design, the E-R model and the relational database model stand out as the most significant and widely used paradigms. While both models are abstract and logical representations of real-world enterprises, they rely on similar design principles, allowing for seamless conversion between them.
+
+The E-R model uses entity sets and relationship sets to define the database structure, while the relational model uses relation schemas, which can be viewed as tables in a database. The conversion of E-R design to relational design requires that for each entity set and relationship set, there is a corresponding relation schema with a unique name.
+
+Constraints are an essential aspect of database design, and the E-R model provides a framework for defining constraints that can be mapped to the relational model. In this regard, this section delves into how E-R schemas can be represented by relation schemas and how constraints from the E-R design can be mapped to constraints on relation schemas.
+
+As such, the conversion of E-R models to relational models enables the use of a more straightforward and flexible approach to database design and management. This technique enhances data integrity, accuracy, and consistency, making it an invaluable tool for modern-day data scientists.
+
+In the world of database management, the conversion of E-R designs into relational designs is a crucial step toward creating efficient and effective database systems. This process involves representing an E-R schema by relation schemas and mapping constraints from the E-R model to those in the relational model.
+
+In this vein, let us explore how strong entity sets with simple descriptive attributes can be represented as relation schemas. If we have a strong entity set E with attributes a1, a2, ..., and an, we can create a schema called E with n distinct attributes to represent it. Here, since student ID is the primary key of the entity set, it is also the primary key of the relation schema.
+
+All the strong entity sets, except the time slot, only have simple attributes. Thus, we can derive the following schemas from these strong entity sets: classroom (building, room number, capacity), department (dept name, building, budget), course (course id, title, credits), instructor (ID, name, salary), and student (ID, name, tot cred). Note that the instructor and student schemas differ from those used in previous chapters as they do not contain the attribute dept name. However, we will revisit this issue shortly.
+
+The handling of strong entity sets with nonsimple attributes can be a challenge. We create separate attributes for each component attribute of a composite attribute, rather than creating a separate attribute for the composite attribute itself. For example, the schema generated for the instructor entity set includes separate attributes for first name, middle name, and last name, rather than creating a separate attribute for the name.
+
+Though not explicitly represented in the relational data model, they can be represented as "methods" in other data models such as the object-relational data model. And for multivalued attributes, we create relation schemas with an attribute corresponding to the primary key of the entity set or relationship set of which the multivalued attribute is a part.
+
+In practice, this means that we create a relational schema for the multivalued attribute phone number of the instructor entity set, with the primary key of the instructor as the corresponding attribute. Each phone number of an instructor is then represented as a unique tuple in relation to this schema. And we create a foreign-key constraint on the relation schema generated from the multivalued attribute, with the attribute generated from the primary key of the entity set referencing the relation generated from the entity set.
+
+We can drop the relation schema for the entity set and retain only the relation schema with the attribute corresponding to the primary-key attribute and the multivalued attribute. For example, the time slot entity set can be represented by a single schema created from the multivalued composite attribute, with time slot id as the primary key.
+
+Drawing upon an encyclopedic knowledge of database design, the author skillfully articulates the mechanics of representing weak entity sets by way of a relation schema, complete with a foreign-key constraint that ensures the existence of a corresponding tuple representing the associated strong entity. The author then takes us through an illustration of this process by way of the weak entity set section in the E-R diagram of Figure 7.15, painting a vivid picture of how the primary key of the course entity set and the discriminator of the section combine to form the primary key of the schema, while also creating a foreign-key constraint on the section schema.
+
+Moving on to the representation of relationship sets, the author masterfully explains the mechanics of choosing a primary key for binary relationship sets, deftly navigating the complexities of one-to-one, many-to-one, and one-to-many relationship sets to arrive at a lucid and insightful conclusion. Through a series of carefully crafted examples, the author walks us through the intricacies of creating foreign-key constraints on relation schema R, deftly leveraging the primary keys of entity sets to create a coherent and well-organized system.
+
+Redundancy can be a hindrance rather than a help. In particular, relationships between weak and strong entity sets can lead to the superfluous schema, as the relationship sets themselves contain no descriptive attributes. This is further complicated by the fact that the primary key of a weak entity set includes the primary key of the strong entity set.
+
+A striking example of this phenomenon can be seen in the E-R diagram, where the weak entity set section is dependent on the strong entity set course through the relationship set sec course. The sec course schema, which includes attributes such as course id, sec id, semester, and year, is redundant when compared to the section schema, which contains the same attributes among others. In fact, every combination of (course id, sec id, semester, year) in a sec course relation can also be found in the section schema, and vice versa. As such, the relationship set schema between weak and strong entity sets is generally unnecessary.
+
+However, in cases where a many-to-one relationship set exists between entity sets A and B, and the participation of A in the relationship is total, we can combine the A and AB schemas to form a single schema.
+
+For example, the schemas instructor and department correspond to the entity sets A and B, respectively, and can be combined to form the inst dept schema. Similarly, the schemas student and department can be combined to form the stud dept schema, while the schemas course and department can be combined to form the course dept schema.
+
 ### Entity-Relationship Design Issues
+
+The notions of entity sets and relationship sets are fraught with imprecision. Indeed, the possibilities for defining a set of entities and the relationships that bind them are manifold. In this section, we delve into the fundamental issues that undergird the construction of an entity-relationship (E-R) database schema, with a more detailed exploration of the design process.
+
+One salient question that arises is whether to utilize entity sets or attributes. Take, for instance, the instructor entity set, which could be augmented with an additional attribute - a phone number. However, it is entirely plausible to argue that a phone number should be treated as an entity in its own right, with its own corresponding attributes such as location (e.g. office, home) and type (e.g. mobile, IP phone). In this scenario, the attribute of a phone number would not be added to the instructor entity set, but rather a new entity set of phones would be created, along with a relationship set between instructors and phones, aptly named "inst phone," as seen in Figure below:
+
+![Figure 91 -  Alternatives for adding phone to the instructor entity set](91.png)
+
+But what exactly differentiates these two definitions of an instructor? Well, treating a phone number as an attribute implies that instructors have precisely one phone number apiece. In contrast, treating phones as an entity allows instructors to have multiple phone numbers (even zero) associated with them. That being said, phone numbers could be defined as a multivalued attribute, enabling multiple phones per instructor. So what makes treating a phone as an entity preferable? The answer lies in the extra information one might want to preserve about a phone, such as its location, type, or all individuals who share the same phone. It follows, then, that treating the phone as an entity better models this scenario and is thus more general than treating it as an attribute.
+
+Of course, one might ask what exactly constitutes an attribute versus an entity set. Alas, the answer is not so clear-cut. The distinctions between the two hinge on the structure of the real-world enterprise being modeled and on the semantics associated with the attribute at hand.
+
+A common mistake that people make in E-R database schema design is to utilize the primary key of an entity set as an attribute of another entity set, instead of using a relationship. For instance, it would be incorrect to model the ID of a student as an attribute of an instructor, even if each instructor advises only one student.
+
+The use of entity sets versus relationship sets can be a tricky issue. The question of whether to represent an object as an entity set or a relationship set is not always clear-cut and requires careful consideration. As depicted in Figure, the takes relationship set can be used to model the situation where a student takes a course. However, an alternative approach would be to create a course-registration record for each course that each student takes, and represent it as an entity set called "registration". This entity set would be related to exactly one student and one section, creating two relationship sets: one to relate course-registration records to students, and another to relate them to sections. While both approaches accurately represent the university's information, using the takes relationship set is more concise and efficient.
+
+![Figure 92 -  Replacement of takes by registration and two relationship sets](92.png)
+
+One way to determine whether to use an entity set or a relationship set is to use a relationship set to describe an action that occurs between entities. This approach can also be helpful in deciding which attributes may be more appropriately expressed as relationships.
+
+In addition, it is important to consider whether to use binary or n-ary relationship sets. While relationships in databases are often binary, some relationships that appear to be nonbinary could actually be better represented by several binary relationships. For example, instead of creating a ternary relationship called a parent to relate a child to his/her mother and father, two binary relationships called mother and father could be created. Using binary relationship sets is preferable in this case, as it provides a record of a child's mother even if the father's identity is unknown.
+
+![Figure 93 - Ternary relationship versus three binary relationships](93.png)
+
+It is always possible to replace a nonbinary (n-ary, for n > 2) relationship set by a number of distinct binary relationship sets. This can be done by creating an entity set to represent the relationship set, and then creating three relationship sets to replace the original ternary relationship set. However, this process can increase the complexity of the design and overall storage requirements.
+
+![Figure 94 - Ternary relationship versus three binary relationships](94.png)
+
+In some cases, an n-ary relationship set may be necessary to show that several entities participate in a single relationship. Moreover, there may not be a way to translate constraints on a ternary relationship into constraints on binary relationships. For example, consider the relationship set proj guide, which relates instructors, students, and projects. While it cannot be directly split into binary relationships between instructors and projects, and between instructors and students, doing so may not be very natural.
+
+The placement of relationship attributes can be a perplexing challenge. A cardinality ratio of a relationship can have a profound impact on where to place these attributes. In some cases, attributes of one-to-one or one-to-many relationship sets can be associated with one of the participating entity sets, instead of the relationship set itself.
+
+For instance, let's take the case of an advisor-student relationship, where one instructor may advise several students, but each student can only be advised by a single instructor. In this scenario, the attribute 'date', which specifies the date on which an instructor became the advisor of a student, can be associated with the student entity set, rather than with the advisor relationship set. This is because each student entity participates in a relationship with at most one instance of an instructor. However, this design decision should reflect the characteristics of the enterprise being modeled.
+
+In contrast, the choice of attribute placement is more straightforward for many-to-many relationship sets. In such cases, the attribute must be associated with the many-to-many relationship set itself, rather than with any of the participating entities. This is because the attribute is determined by the combination of the participating entity sets, rather than by either entity separately.
+
+Therefore, the placement of relationship attributes in a database design must be thoughtfully considered to accurately represent the characteristics of the enterprise being modeled.
 
 ### Extended E-R Features
 
+The basic E-R model has been the bedrock of database design for decades, but as with any paradigm, there are some aspects that can be better expressed with extensions. In this section, we will explore some of the extended E-R features that can help us model complex databases more effectively.
+
+One such feature is specialization, which allows us to create more specific entity sets from a general entity set. For example, we can create a "student" entity set that specializes from the "person" entity set, with additional attributes such as "major" and "class standing."
+
+Another extension is a generalization, which allows us to group similar entity sets into a more general entity set. For example, we can group the "student" and "instructor" entity sets into a more general "personnel" entity set.
+
+Higher- and lower-level entity sets allow us to organize entity sets into hierarchies. Attribute inheritance is a related feature that allows attributes to be inherited by lower-level entity sets from higher-level entity sets.
+
+Finally, aggregation is an extension that allows us to treat a collection of entities as a single entity. For example, we can treat a department and all of its associated courses as a single entity.
+
+To illustrate these extended E-R features, we will use a more elaborate database schema for a university, which includes an entity set called "person" with attributes such as ID, name, and address. With these tools at our disposal, we can model even the most complex databases with clarity and precision.
+
+In the realm of database modeling, entities within an entity set may have distinct attributes that set them apart from other entities in the same set. Enter the concept of specialization, an extended feature of the E-R model that allows for subgroupings of entities within a set. For example, the entity set "person" may be further classified as an employee or a student, each with their own set of attributes beyond those of the parent entity set.
+
+The university setting provides ample opportunity for specialization. Students can be further categorized as graduate or undergraduate, each with their own unique attributes. Graduate students may have an office assigned to them, while undergraduate students are assigned to a residential college. Similarly, employees can be classified as instructors or secretaries, with their own set of specialized attributes and relationships to other entity sets.
+
+An entity set can be specialized by more than one distinguishing feature, resulting in overlapping specializations, or by at most one feature, resulting in disjoint specializations. This concept is visually represented in an E-R diagram by a hollow arrowhead pointing from the specialized entity set to the other entity set. This relationship is called the ISA relationship and is akin to stating that an instructor "is an" employee.
+
+![Figure 95 - Specialization and generalization](95.png)
+
+It opens the door to subclass relationships, which are crucial to accurately modeling complex data structures.
+
+The refinement of an initial entity set into successive levels of entity subgroupings represents a crucial top-down process in which important distinctions are made explicit. However, the design process may also proceed in a bottom-up fashion, whereby multiple entity sets are synthesized into a higher-level entity set on the basis of common features.
+
+Upon closer inspection, the designer may recognize that the instructor and secretary entity sets share some key attributes, such as their identifier, name, and salary attributes. This commonality can be expressed through generalization, which is a containment relationship that exists between a higher-level entity set and one or more lower-level entity sets.
+
+To illustrate this concept, let's consider the example of an employee entity set that contains both instructors and secretaries as lower-level entity sets. In order to create a generalization, the attributes that are conceptually the same must be given a common name and represented by the higher-level entity of a person. In this way, the attribute names ID, name, and address can be used to create a cohesive and unified schema that accurately reflects the needs of the user.
+
+It's worth noting that higher- and lower-level entity sets can also be referred to as superclass and subclass, respectively. For all practical purposes, generalization is simply the inverse of specialization, and both processes are typically employed in combination during the course of designing an E-R schema for an enterprise. In terms of the E-R diagram itself, there is no need to distinguish between specialization and generalization; rather, new levels of entity representation are distinguished or synthesized as needed to fully express the database application and the user requirements.
+
+While the two approaches may differ in terms of their starting point and overall goal, they ultimately serve the same purpose of creating a robust and effective database schema. The specialization emphasizes differences among entities within a set by creating distinct lower-level entity sets, while generalization synthesizes entity sets into a single, higher-level entity set based on shared attributes and relationship sets. Through the careful application of these techniques, designers can create databases that are efficient, effective, and optimized for the needs of their users.
+
+This crucial property of higher- and lower-level entities created by specialization and generalization brings a level of coherence and structure to an otherwise complex and multifaceted model.
+
+Consider, for instance, the student and employee entities, which inherit the attributes of a person, and are therefore described by their ID name, and address, as well as additional attributes such as tot cred and salary, respectively. And this inheritance, as we learn, applies through all tiers of lower-level entity sets, thus reinforcing the coherence of the model.
+
+But inheritance is not limited to attributes alone; lower-level entity sets also inherit participation in the relationship sets in which their higher-level entities participate. Take, for example, the person entity set that participates in a relationship with the department. This relationship is implicitly inherited by the student, employee, instructor, and secretary entity sets, which also participate in the person dept relationship with the department.
+
+As we explore the implications of ER modeling, it becomes clear that whether the model is arrived at through specialization or generalization, the outcome is largely the same: a higher-level entity set with attributes and relationships that apply to all lower-level entities, and lower-level entity sets with distinctive features that apply only within their own particular sets.
+
+Constraints, however, can be placed on a particular generalization to model an enterprise more accurately. These constraints can involve determining which entities can be members of a lower-level entity set, as in condition-deﬁned or user-defined sets, or whether entities may belong to more than one lower-level set, as in disjoint or overlapping sets. The completeness constraint on a generalization or specialization can also be specified, indicating whether an entity in the higher-level set must belong to at least one of the lower-level sets.
+
+* The Entity-Relationship (E-R) model has proven to be a valuable tool. However, as with any model, it has its limitations. One such limitation is its inability to express relationships among relationships, as illustrated by the ternary relationship proj guide between an instructor, student, and project.
+* To capture the evaluation reports required for this relationship, an entity called evaluation is created with a primary key evaluation id. To link evaluations to the (student, project, instructor) combination, a quaternary relationship set eval for between instructor, student, project, and evaluation is created. However, combining the relationship sets proj guide and eval for into a single relationship is not advisable, as some combinations may not have an associated evaluation.
+
+* To avoid redundancy, the concept of aggregation is introduced. Aggregation is an abstraction that treats relationships as higher-level entities. In this case, the relationship set proj guide is treated as a higher-level entity set called proj guide, with a binary relationship eval between proj guide and evaluation representing which (student, project, instructor) combination an evaluation is for.
+
+![Figure 96 - E-R diagram with redundant relationships](96.png)
+
+* The extended E-R features can then be translated into relation schemas. Two methods of designing relation schemas for an E-R diagram that includes generalization are discussed, with foreign-key constraints being a potential issue in the second method.
+
+![Figure 97 - E-R diagram with aggregation](97.png)
+
+In conclusion, the E-R model has proven to be a valuable tool in database design, but its limitations must be considered when dealing with complex relationships. The concept of aggregation offers a powerful solution to overcome these limitations and capture complex relationships with ease.
+
+The representation of aggregation can often pose a challenge. With the aid of the Figure - *E-R diagram with aggregation*, we can easily craft a schema for the relationship set eval that lies between the aggregation of proj guide and the entity set evaluation.
+
+To achieve this, we include an attribute for each attribute in the primary keys of the entity set evaluation and the relationship set proj guide, as well as any descriptive attributes that may exist for the relationship set eval. We then proceed to transform the relationship sets and entity sets within the aggregated entity set according to the well-established rules we have already defined.
+
+The primary key of the aggregation is the primary key of its defining relationship set, and there is no need for a separate relation to representing the aggregation. Instead, the relationships created from the defining relationship are utilized. With these fundamental principles in mind, navigating the complexities of database design can be a far less daunting task.
+
 ### Alternative Notations for Modeling Data
+
+In the quest for the most intuitive and effective notation for modeling data, a number of alternatives have been proposed, each with its own unique set of symbols and conventions. Among the most widely used are the Entity-Relationship (E-R) diagram and the Unified Modeling Language (UML) class diagram. These notations play a crucial role in the database schema design process, providing an intuitive and easy-to-understand visual representation of the data model of an application.
+
+![Figure 98 - Symbols used in the E-R notation](98.png)
+
+To provide a basis for comparison, we examine some of the alternative E-R diagram notations as well as the UML class diagram notation. The set of symbols used in our E-R diagram notation is summarized in the Figure above.
+
+Alternative E-R diagram notations include different ways of representing entity and relationship attributes, as well as cardinality constraints and generalization. Some use ovals to represent attributes, with primary key attributes underlined, while others represent relationship attributes by connecting ovals to the diamond representing the relationship. Cardinality constraints can be depicted using various symbols, such as the "crow's-foot" notation, or labels such as "*" and "1."
+
+![Figure 99 - Alternative E-R notations](99.png)
+
+Our new notation, which is closer to the UML class diagram notation, provides a more compact representation of attributes and is supported by many E-R modeling tools. However, it is important to note that different tools may offer various notational variants.
+
+While E-R diagrams are crucial for modeling data representation in a software system, they are only one component of an overall system design. UML provides a standard for creating specifications of various components of a software system, including models of user interactions, functional modules, and their interactions. As such, UML plays a vital role in the design and development of complex software systems.
+
+![Figure 100 - Symbols used in the UML class diagram notation](100.png)
 
 ### Other Aspects of Database Design
 
+In exploring the complexities of database design, we must not fall prey to the misguided notion that schema design is the be-all and end-all. There are, in fact, a multitude of factors that must be taken into account when considering the optimal design for a database. We shall only briefly survey a few of these factors here but will delve more deeply into them in future chapters.
+
+One crucial aspect of database design is the implementation of data constraints, which can be expressed using SQL. Constraints serve to ensure consistency in data preservation and can be centrally located and updated, making them more reliable than relying on individual application programs to enforce constraints. Furthermore, the explicit expression of constraints allows for the use of unique identifiers in designing relational database schemas, such as social security numbers, which can be used to link data related to a particular individual across multiple relations.
+
+Performance is another critical consideration in database design, as it affects the efficiency of users and processes interacting with the system. Throughput, which measures the number of queries or updates processed per unit of time, and response time, which measures the time a single transaction takes from start to finish, are the primary metrics for performance. While throughput is the focus of systems processing large numbers of transactions, response time is critical for systems interacting with people or time-critical systems. The type of queries that are expected to be most frequent, as well as the relative mix of update and read operations, are important factors in the choice of indices to speed query evaluation.
+
+Authorization requirements are also a crucial consideration in database design. SQL allows access to be granted to users on the basis of components of the logical design of the database, so relation schemas may need to be decomposed to facilitate access rights. Division of data becomes even more critical when the data are distributed across systems in a computer network, as we shall see in Chapter 19.
+
+In short, there are myriad factors to consider when designing a database beyond schema design, and a holistic approach is necessary to ensure optimal performance and functionality.
+
 ## Relational Database Design
+
+In this chapter, the intricate art of relational database design is brought to the fore. Akin to the E-R model, this pursuit aims to create a schema that obviates redundancy while facilitating easy access to stored data. The key to achieving this objective is the crafting of schemas that conform to the appropriate normal form. To accomplish this, an understanding of the enterprise being modeled is vital, and this can be gleaned from a well-crafted E-R diagram or other relevant sources of information.
+
+With this in mind, the chapter introduces a formal method of relational database design predicated on the notion of functional dependencies. Using this method, the team defines normal forms in terms of functional dependencies and other forms of data dependencies. Before delving into the intricacies of this design approach, the chapter scrutinizes the relational design conundrum, focusing on the schemas derived from an extant entity-relationship design. In sum, this chapter offers a masterclass in the design of relational databases.
 
 ### Features of Good Relational Designs
 
+In exploring the intricacies of relational database design, we must tread carefully and consider the subtle nuances of our design choices. The allure of creating larger schemas to reduce the complexity of our queries may seem tempting, but we must be wary of the consequences that come with storing redundant information. As we learned from the university database example, the inst dept schema presents a double-edged sword that risks creating inconsistency and hindering the creation of new departments.
+
+![Figure 101 - Schema for the university database](101.png)
+
+Similarly, the decision to split a schema into smaller, more specialized schemas requires a nuanced approach that takes into account the unique rules and functional dependencies of the database.
+
+![Figure 102 - The inst dept table](102.png)
+
+We cannot simply rely on ad-hoc methods of identifying repetition in the data as it may be a mere coincidence or a special case that does not generalize to other scenarios. Instead, we must turn to the fundamental rules and constraints that govern the database and use functional dependencies to guide our schema decomposition.
+
+![Figure 103 - Loss of information via a bad decomposition](103.png)
+
+In short, the art of relational database design requires a delicate balance between simplicity, efficiency, and accuracy. We must constantly weigh the trade-offs between larger and smaller schemas, redundant and non-redundant information, and specialized and generalized functionality. Only through a thoughtful and meticulous approach can we hope to create databases that are both reliable and effective.
+
 ### Atomic Domains and First Normal Form
+
+The concept of atomic domains and the first normal form is a fundamental and essential principle. When designing tables from entity-relationship models, which allow for attributes with substructure such as multivalued or composite attributes, we must eliminate this substructure in the relational model. This is achieved by creating a separate attribute for each component of a composite attribute and by creating one tuple for each item in a multivalued set.
+
+In the relational model, we formalize the idea that attributes have no substructure and define an atomic domain as one where the elements are considered indivisible units. A relation schema is in first normal form (1NF) if all attributes have atomic domains. For instance, sets of names or identification numbers with department codes and unique employee numbers are examples of non-atomic domains that would violate 1NF.
+
+Using set-valued attributes can lead to redundant storage and inconsistencies, which can cause problems when updating data. While some types of non-atomic values, such as composite-valued attributes, can be useful, they should be used with care. Forcing a first normal form representation in domains with complex entity structures can create unnecessary burdens on application programmers, who must write code to convert data into an atomic form, and runtime overhead. Nonetheless, modern database systems support various types of non-atomic values.
+
+While some non-atomic values may have utility in certain circumstances, the potential for inconsistencies and redundancy requires careful consideration when using them in database design.
 
 ### Decomposition Using Functional Dependencies
 
+In the realm of relational database design, the evaluation of whether a given schema should be decomposed can be achieved via a formal methodology that is grounded in the concepts of keys and functional dependencies. In order to discuss algorithms for database design, it is necessary to use notation that pertains to arbitrary relations and their schema, rather than focusing only on examples. This notation is reminiscent of that introduced in the relational model.
+
+![Figure 104 - Sample instance of relation r](104.png)
+
+In the context of this notation, certain sets of attributes can be used to uniquely identify tuples in a given relation, and these sets are known as superkeys. Keys, candidate keys, and primary keys can be seen as types of real-world constraints that are commonly represented formally. Functional dependencies, on the other hand, allow for constraints that identify the values of certain attributes within a schema.
+
+A functional dependency is said to hold on to a given schema if it is satisfied in every legal instance of that schema. If a set of attributes is a superkey for a relation schema, then the functional dependency between that set and the entire set of attributes of that schema holds. This means that for every pair of tuples in any legal instance of the relation that shares the same superkey, their entire attribute sets will be identical.
+
+Functional dependencies enable the expression of constraints that cannot be represented with superhero. The relationship between superkeys and functional dependencies is demonstrated with the example of a schema involving departments and instructors, in which the functional dependency between the department name and the budget holds, indicating that the department name can be used to uniquely identify the budget of a given department. Ultimately, the concepts of keys and functional dependencies are crucial in the evaluation of whether a given relational schema should be decomposed.
+
+![Figure 105 - An instance of the classroom relation](105.png)
+
+As we delve deeper into the world of database design, we come across the Boyce-Codd normal form (BCNF), a highly desirable state that eliminates all redundancy based on functional dependencies. While there may still be other forms of redundancy remaining, BCNF eradicates any redundancy that can be discovered through functional dependencies. For a relation schema R to be considered in BCNF with respect to a set F of functional dependencies, there must be at least one of the following criteria:
+
+* A functional dependency is trivial, meaning that the dependent attribute is a subset of the determinant.
+* The determinant is a superkey for schema R.
+* To demonstrate this concept, we revisit the relational schema inst_dept (ID, name, salary, dept_name, building, budget), which we previously saw was not in BCNF due to the functional dependency dept_name → budget. As dept_name is not a superkey, we decompose inst_dept into instructor and department. Upon doing so, we discover that the instructor is in BCNF, with ID being the primary key and a superkey for the schema. Similarly, the department is also in BCNF, with dept_name being the primary key and a superkey for the schema.
+* When a schema is not in BCNF, we must decompose it to remove the redundancy. To do so, we replace R in our design with two schemas, (Lambda U Beta) and(R - (Beta - Lambda). In the case of inst_dept, we replace it with (dept_name, building, budget) and (ID, name, dept_name, salary). This process continues until all resulting schemas are in BCNF.
+
+![Figure 106 - The dept advisor relationship set](106.png)
+
+While BCNF is highly desirable, it may hinder the efficient testing of certain functional dependencies if the decomposition is not done properly. This is because testing constraints each time the database is updated can be costly. Therefore, designing the database in a way that allows for efficient constraint testing is crucial.
+
 ### Functional-Dependency Theory
+
+In a world driven by data, the ability to reason systematically about functional dependencies is a fundamental skill for anyone working with databases. Functional-Dependency Theory, as exemplified in the groundbreaking work of Armstrong, provides a powerful framework for reasoning about these dependencies and ensuring that database schemas conform to desired normal forms.
+
+The crux of the theory lies in the concept of logical implication: given a set of functional dependencies F on a schema, we can prove that certain other functional dependencies hold on the schema. In other words, we can determine which dependencies are "logically implied" by F. However, this process can be time-consuming, particularly for large sets of dependencies.
+
+![Figure 107 -  A procedure to compute F+](107.png)
+
+To address this issue, Armstrong's axioms provide a set of rules for inferring additional dependencies from a given set. These axioms are both sound and complete, meaning they generate all correct dependencies and no incorrect ones. Moreover, they can be used to prove the correctness of additional rules, such as the Union rule, Decomposition rule, and Pseudotransitivity rule.
+
+![Figure 108 -  An algorithm to compute a+](108.png)
+
+In practice, the ability to reason about functional dependencies is critical for ensuring the accuracy and efficiency of databases. Whether working with small or large sets of dependencies, understanding the principles of Functional-Dependency Theory and Armstrong's axioms is essential for anyone seeking to master this field.
+
+Ensuring the satisfaction of functional dependencies (FDs) in a given relation schema is paramount. Such satisfaction guarantees the integrity and consistency of the data and is a fundamental requirement of any reliable database system. By checking the satisfaction of FDs on every update can be computationally expensive, especially for large datasets.
+
+The canonical cover is a simplified set of FDs that has the same closure as the original set. It is obtained by eliminating extraneous attributes from each FD in the set until no extraneous attributes remain. An extraneous attribute is one that can be removed from a given FD without altering its closure. In other words, it is a redundant attribute that does not contribute to the satisfaction of the FD.
+
+The process of computing the canonical cover involves iteratively removing extraneous attributes from each FD in the set until a fixed point is reached. This can be done efficiently by computing the closures of the set of FDs with and without each extraneous attribute. If the closure of the FD set with the extraneous attribute is the same as the closure of the FD set without the attribute, then the attribute is extraneous and can be safely removed.
+
+Once we have obtained the canonical cover of a set of FDs, we can use it to check the satisfaction of FDs on updates. This is because any relation that satisfies the canonical cover also satisfies the original set of FDs and vice versa. Furthermore, the canonical cover has unique left sides and no extraneous attributes, making it an ideal representation of the minimal set of FDs required for the satisfaction of the original set.
+
+A canonical cover is a powerful tool for reducing the complexity of FD satisfaction checks in relational databases. It allows us to obtain a simplified set of FDs that is equivalent to the original set while removing any redundancy and ensuring minimalism. With the canonical cover, we can ensure the integrity and consistency of our data, without sacrificing performance or scalability.
 
 ### Algorithms for Decomposition
 
+In the world of database design, lossless decomposition is a concept of utmost importance. This principle states that a database schema, defined by a relation schema r(R) and a set of functional dependencies F, can be decomposed into two relation schemas, r1(R1) and r2(R2), without losing any information, as long as the original relation r contains the same set of tuples as the result of a natural join of the projection of r onto R1 and R2. This lossless join decomposition is crucial in ensuring that the database remains consistent and complete even after the decomposition process.
+
+However, not all decompositions are lossless. A lossy decomposition occurs when information is lost during the decomposition process, resulting in a joint result that is a superset of the original relation but lacks certain key information. To avoid this, it is essential to test whether decomposition is lossless or not. This can be done using functional dependencies, where a decomposition is lossless if R1 ∩ R2 forms a superkey of either R1 or R2.
+
+Another important concept in database design is dependency preservation. This principle states that a decomposition of a schema R into multiple schemas should preserve all the functional dependencies of the original schema. To test this, we can restrict the set of functional dependencies to each individual relation schema, and verify that the union of these restrictions implies all the original functional dependencies. If this is the case, then the decomposition is said to be dependency-preserving.
+
+![Figure 109 -  Testing for dependency preservation](109.png)
+
+While these concepts may seem complex and technical, they are essential in ensuring that databases remain consistent and complete, and that data is not lost during the decomposition process. By understanding lossless decomposition and dependency preservation, we can design databases that are robust, efficient, and accurate.
+
+As we delve into the intricacies of database design, we are faced with the challenge of developing designs that adhere to the rules of appropriate normal form. It is for this reason that we require algorithms to assist in the generation of such designs, and in this section, we shall explore algorithms for BCNF and 3NF.
+
+To begin with, we must test whether a relation schema is in BCNF, and while the definition of BCNF can be used for this purpose, the computation of F + can prove to be a tedious task. However, simplified tests can be performed to verify whether a nontrivial dependency causes a violation of BCNF. Additionally, it is important to note that the testing procedure cannot be employed when a relation is decomposed, as it may not be sufficient to use F to test a decomposed relation for a BCNF violation. Therefore, we may require a dependency that is in F+, but not in F, to demonstrate that a decomposed relation is not in BCNF.
+
+![Figure 110 -  BCNF decomposition algorithm](110.png)
+
+An alternative BCNF test can be applied to check if a relation in a decomposition of R satisfies BCNF. The algorithm uses dependencies that demonstrate the violation of BCNF to perform the decomposition, generating not only BCNF schemas but also a lossless decomposition. However, it is important to note that the BCNF decomposition algorithm takes exponential time, and while there are algorithms that can compute a BCNF decomposition in polynomial time, they may "over-normalize" by decomposing a relation unnecessarily.
+
+![Figure 111 -  Dependency-preserving, lossless decomposition into 3NF](111.png)
+
+As an example of the practical application of the BCNF decomposition algorithm, let us consider a database design using the class schema. We must ensure that the set of functional dependencies that we require to hold on class are satisfied, and we can employ the BCNF decomposition algorithm to achieve this end. Ultimately, we must remember that the development of a robust database design requires a thorough understanding of the underlying principles and a careful application of algorithms and testing procedures to ensure adherence to the rules of appropriate normal form.
+
+In the realm of relational database schemas, the 3NF algorithm stands as a stalwart, a beacon of hope in a sea of uncertainty. Building a schema for each dependency in a canonical cover preserves dependencies and ensures a lossless decomposition. Though not uniquely defined and subject to the order in which dependencies are considered, the algorithm guarantees 3NF even for relations already in the form.
+
+BCNF and 3NF both offer advantages, but the latter allows for the preservation of dependencies without sacrificing losslessness. However, it comes with the caveat of potential repetition of information and null values to represent relationships. When designing databases with functional dependencies, our goals are to achieve BCNF, losslessness, and dependency preservation, but it's not always possible to satisfy all three. In such cases, we must choose between BCNF and dependency preservation with 3NF.
+
+It's worth noting that SQL lacks a way to specify functional dependencies, except for the declaration of superkeys with primary or unique constraints. While assertions can enforce functional dependencies, no database system currently supports such complex assertions. Even with a dependency-preserving decomposition, standard SQL can only efficiently test dependencies with a left-hand side that is key. However, materialized views can reduce the cost of testing functional dependencies, provided the database system supports primary key constraints on materialized views.
+
 ### Decomposition Using Multivalued Dependencies
+
+In the realm of database normalization, even the most sophisticated normalization technique, such as Boyce-Codd normal form (BCNF), can sometimes fail to eliminate the problem of redundant information in certain relation schemas. Take for instance the scenario where a university instructor is associated with multiple departments. Although BCNF can be applied to this schema, it still suffers from redundant information due to the repetition of an instructor's address information for each department they are affiliated with.
+
+To address this issue, a new form of constraint, called multivalued dependencies (MVDs), must be introduced. While functional dependencies determine the presence or absence of certain tuples in a relation, MVDs require certain other tuples to be present. Multivalued dependencies are thus referred to as tuple-generating dependencies.
+
+In a relation schema r(R), a multivalued dependency A →→ B holds if, in any legal instance of relation r(R), for all pairs of tuples t1 and t2 in r such that t1[A] = t2[A], there exist tuples t3 and t4 in r that satisfy certain conditions. If the multivalued dependency A →→ B is satisfied by all relations on schema R, it is considered a trivial multivalued dependency on schema R.
+
+![Figure 112 -  Tabular representation](112.png)
+
+To better illustrate the distinction between functional and multivalued dependencies, consider the scenario of a university instructor with multiple addresses and affiliations with multiple departments. By applying the multivalued dependency ID →→ street, city, we can eliminate the redundancy of repeating an instructor's address information for each department they are associated with.
+
+![Figure 113 -  An example of redundancy in a relation on a BCNF schema](113.png)
+
+![Figure 114 -  An illegal r2 relation](114.png)
+
+While BCNF is a powerful tool for normalization, it may not always suffice in eliminating redundancy in relation schemas. Multivalued dependencies offer an effective means of addressing this issue by specifying conditions that must be met to ensure the presence of certain tuples in a relation.
+
+Specifically, we explore the intricacies of the Fourth Normal Form (4NF), which is a level of schema normalization that addresses the issue of multivalued dependencies.
+
+To determine if each relation schema in a decomposition satisfies 4NF, we must first identify the multivalued dependencies that exist within each schema. To do so, we define the restriction Fi of a set of functional dependencies F to Ri, which includes all functional dependencies in F+ that involve only attributes of Ri. We also consider a set D of both functional and multivalued dependencies, and the restriction of D to Ri, which is the set Di consisting of functional dependencies and multivalued dependencies that only involve attributes of Ri.
+
+The algorithm for decomposing a schema into 4NF closely mirrors that of BCNF, but incorporates multivalued dependencies and uses the restriction of D+ to Ri. If we apply this algorithm to a schema such as (ID, dept name, street, city), we may discover nontrivial multivalued dependencies such as ID→→dept name, indicating the need for further decomposition. By replacing the problematic attribute with two schemas that satisfy 4NF, we can eliminate redundancy and improve schema design.
+
+To ensure that our decompositions are lossless and preserve dependencies, we turn to the concept of multivalued dependencies and their relationship to losslessness. Specifically, we must verify that at least one of two multivalued dependencies holds true for a given decomposition to be considered lossless. The issue of preserving dependencies in the presence of multivalued dependencies is a complex one and requires further exploration.
 
 ### More Normal Forms
 
+The fourth normal form (4NF) is a powerful tool in database normalization, but it is not the end-all-be-all of normal forms. In fact, there are several more normal forms that can help us eliminate data redundancy and ensure data integrity. Join dependencies can lead to a higher level of normalization, known as the project-join normal form (PJNF), which is sometimes referred to as the fifth normal form.
+
+But PJNF is not the final frontier of normalization. There is a class of even more general constraints that lead to another normal form called domain-key normal form (DKNF). However, while these generalized constraints can help eliminate data redundancy, they are often difficult to reason about and there is no set of sound and complete inference rules to reason about them. As a result, PJNF and DKNF are rarely used in practice.
+
+Interestingly, the second normal form (2NF) is not discussed at length in this discussion of normal forms. While it has historical significance, its utility has been overshadowed by the more powerful and widely used third normal form (3NF) and beyond. However, it is still a valuable tool to experiment with and gain a deeper understanding of database normalization.
+
 ### Database-Design Process
+
+In delving deeper into the intricate details of the database-design process, we have uncovered significant insights that shed light on the complex interplay between the normalization of relation schemas and the broader context of database design. Our exploration has revealed that there are several paths by which a relation schema can be derived, including generating a schema from an E-R diagram, starting with a single relation schema and breaking it down through normalization, or designing relations ad-hoc and verifying their conformance to a desired normal form.
+
+One key issue that emerges when generating relation schemas from E-R diagrams is the potential for functional dependencies between entity attributes to arise. For example, an instructor entity set may have attributes such as department name and department address, with a functional dependency between the former and the latter. In such cases, the normalization process becomes necessary to ensure that the generated relation schema meets the desired normal form. This underscores the importance of designing E-R diagrams with the utmost care, to avoid such issues and ensure that the normalization process can be carried out with minimal adjustments.
+
+Moreover, we have seen that functional dependencies are useful for detecting poor E-R design and that the normalization process can be carried out formally as part of data modeling or left to the designer's intuition during E-R modeling. The universal-relation approach to relational database design assumes a single schema containing all attributes of interest, which defines how users and applications interact with the database.
+
+In addition, we have explored the importance of unique attribute naming, which ensures that each attribute has a unique meaning in the database, preventing confusion between the same attribute used in different schemas. On the other hand, attributes of different relations that have the same meaning can be named identically to reduce user errors. The order of attribute names in a schema may not matter technically, but primary-key attributes are conventionally listed first to make reading default output easier.
+
+In conclusion, our comprehensive analysis of the database-design process has illuminated the various nuances and subtleties involved, highlighting the importance of careful E-R diagram design, functional dependencies, normalization, and unique attribute naming. These insights will undoubtedly prove invaluable for database designers and developers seeking to optimize the design and functionality of their databases.
 
 ### Modeling Temporal Data
 
+In a world where temporal data reigns supreme, modeling such data can prove to be a challenging task. Consider, for instance, an instructor entity set and its associated time-varying addresses. To imbue these addresses with temporal information, one must create a multivalued attribute consisting of composite values containing an address and a time interval. But this is just the beginning of the complexity that arises when dealing with temporal data.
+
+Entities themselves may possess valid time intervals, such as the student entity, which has a valid time from the date of entry to the date of graduation or leaving the university. Relationships too can have valid times, as in the case of the prereq relationship, which records when a course becomes a prerequisite for another course.
+
+Adding such temporal details to an E-R diagram is no mean feat, for it can make the diagram difficult to create and comprehend. While there have been several proposals to extend the E-R notation to account for temporal data, there are no universally accepted standards.
+
+To compound matters further, functional dependencies that we assumed to hold for regular data may no longer hold when tracking data values over time. Instead, we must turn to temporal functional dependencies, which hold on a relation schema if all snapshots of that schema satisfy the functional dependency X→Y. While we could extend the theory of relational database design to account for temporal functional dependencies, few designers are prepared to tackle this level of complexity.
+
+As a result, many database designers opt for simpler approaches, such as designing the database ignoring temporal changes, and then adding valid time information to each relation that requires it. This involves adding start and end time attributes, as in the case of the course relation, which may have multiple records with different titles and corresponding valid time ranges. If the relation is updated, a new tuple is added containing the new title and start time, and the end time of the previous tuple is updated accordingly.
+
+However, when a relation has a foreign key referencing a temporal relation, the database designer must decide whether the reference is to the current version of the data or to the data as of a specific point in time. For example, while a student's transcript should refer to the course title at the time the student took the course, a reference from the instructor or student relation may only care about the current version of the data.
+
+All of these complexities make modeling temporal data a formidable challenge, one that requires careful consideration and attention to detail. But with the right approach and a deep understanding of the underlying principles, it is possible to tame the beast that is temporal data and extract valuable insights that can inform decision-making at every level of the organization.
+
 ## Application Design and Development
+
+The ubiquitous use of databases in today's world occurs primarily through application programs. As a result, user interaction with databases is largely indirect, taking place through the medium of these programs. In response to this, database systems have incorporated tools such as form and GUI builders, which streamline the development of applications that interface with users. However, with the emergence of the Web as the primary mode of user interaction, the focus has shifted toward the development of Web-based applications that rely on databases to store data.
+
+In this chapter on application design and development, we explore the various tools and technologies utilized in the creation of interactive applications that employ databases to manage data. After a brief introduction to application programs and user interfaces, we delve into the world of Web-based applications, providing an overview of relevant Web technologies. Into the widely utilized Java Servlets technology for building Web applications, followed by a succinct overview of Web application architectures.
+
+To streamline the process of application development, we examine the tools available for rapid application development, while in the following section, we turn our attention to the crucial issue of performance when building large-scale Web applications. Afterward, we consider the paramount issue of application security, followed by a comprehensive discussion on encryption and its implementation in applications.
+
+In conclusion, this chapter offers a comprehensive exploration of the tools and technologies employed in the development of interactive applications that rely on databases to manage data. It highlights the significance of Web-based applications in today's world and offers insights into key issues such as performance and security, ensuring that the reader is well-equipped to tackle the challenges of building successful applications in this arena.
 
 ### Application Programs and User Interfaces
 
+In the realm of database systems, the majority of users are not familiar with the use of query languages to directly interact with the system. Instead, application programs serve as a crucial intermediary, offering a user interface at the front end while communicating with the database at the back end. These applications accept user input through forms-based interfaces, allowing for data entry or information retrieval from the database based on the user's input. This output is then presented to the user.
+
+One example of an application program is a university registration system. This type of system typically requires users to first authenticate themselves with a username and password, after which the system retrieves information about the user from the database, such as registered courses and name and presents it to them. The application offers users the ability to register for courses or query information about courses and instructors. Such applications are used in a variety of industries to automate tasks ranging from sales and accounting to human resources management and inventory management.
+
+Some application programs are used even without the user's awareness, such as when a news site offers users a personalized page based on their browsing history. In this case, an application program generates a customized page for each user, taking into account their history of articles viewed. Application programs typically have a front-end component for the user interface, a back-end component for database communication, and a middle layer containing "business logic" that handles specific requests for information or updates.
+
+![Figure 116 - Application architectures in different eras](116.png)
+
+The evolution of application architectures over time is depicted in the Figure, with airline reservations serving as an example of an application that has been around since the 1960s. Early computer applications were run on mainframe computers, with users interacting through terminals that often supported forms. The rise of personal computers brought with it a client-server architecture, which allowed for powerful graphical user interfaces. However, installing software on each user's computer made upgrades more difficult. In recent years, web browsers have become the go-to front end for database applications, using the standardized syntax of HyperText Markup Language (HTML) to create forms-based interfaces.
+
+Unlike client-server architectures, web-based applications do not require any application-specific software to be installed on client machines. JavaScript programs are used to create sophisticated user interfaces and can be run in a safe mode that ensures security. These programs are downloaded to the browser transparently and do not require explicit installation on the user's computer. Application programs are executed on a web server in response to requests from a browser, with a variety of technologies available for creating such programs.
+
+In the following chapter, we delve into the technologies and tools used to build web interfaces and application programs, as well as application architectures, performance, and security concerns.
+
 ### Web Fundamentals
+
+As we delve into the world of the World Wide Web, we must first acquaint ourselves with its fundamental technology. For those unfamiliar with the underlying infrastructure, let us begin with a discussion on Uniform Resource Locators (URLs).
+
+A URL is a globally unique name for each document that can be accessed on the Web. It consists of various parts that identify the document's location and how it is to be accessed. For instance, the "http" at the beginning of a URL indicates that the document is to be accessed by the HyperText Transfer Protocol (HTTP), which is a protocol for transferring HTML documents. The second part of the URL gives the name of a machine that has a Web server, while the rest of the URL is the path name of the file on the machine or other unique identifier of a document within the machine.
+
+![Figure 117 - Tabular data in HTML format](117.png)
+
+Furthermore, a URL can contain the identifier of a program located on the Web server machine, as well as arguments to be given to the program. When a request is received for such a URL, the Web server executes the program, using the given arguments, and returns an HTML document to the Web server, which sends it back to the front end.
+
+![Figure 118 - Display of HTML source](118.png)
+
+![Figure 119 - An HTML form](119.png)
+
+Moving on to HyperText Markup Language (HTML) is the language used to create web pages, allowing for the structuring of text, images, and other media on a webpage. HTML pages are enclosed in an HTML tag, while the body of the page is enclosed in a body tag. A table is specified by a table tag, which contains rows specified by a tr tag, and so on. The use of HTML tags allows for the creation of forms, menus, and tables, making it easier for web designers to create visually appealing websites.
+
+![Figure 120 - Display of HTML source](120.png)
+
+But the power of the Web does not stop there, as Web servers provide an array of features beyond the mere transfer of documents. By executing programs with user-supplied arguments, a Web server can act as an intermediary to provide access to a variety of information services. The Common Gateway Interface (CGI) standard defines how the Web server communicates with application programs, allowing for the creation of new services by installing an application program that provides the service.
+
+![Figure 121 - Three-layer Web application architecture](121.png)
+
+[Figure 122 - Two-layer Web application architecture](122.png)
+
+As we marvel at the sheer magnitude of the World Wide Web, we must also acknowledge the intricate technology that makes it all possible. With the use of URLs, HTML, and Web servers, we are able to create and access a seemingly infinite world of information at our fingertips.
 
 ### Servlets and JSP
 
+In a two-layer web architecture, Java programs can be loaded into the web server itself to implement an application programming interface for communication between the server and the application program. This is known as the Java servlet specification. The HttpServlet class in Java is responsible for implementing the servlet API specification, and subclasses of this class are used to define specific functions. A servlet is essentially a Java program that implements the servlet interface, with the task of processing HTTP requests, accessing databases, and dynamically generating HTML pages for client browsers.
+
+![Figure 123 - Example of servlet code](123.png)
+
+To generate dynamic responses to HTTP requests, servlets are commonly used to access inputs provided through HTML forms, apply business logic, and generate HTML output to be sent back to the browser. A servlet example, PersonQueryServlet, demonstrates the form in the Figure, with the servlet code responsible for extracting values of the parameter type and number using request.getParameter(), running a query against a database, and returning the results of the query to the requester by outputting them to the HttpServletResponse object response.
+
+![Figure 124 - A JSP page with embedded Java code](124.png)
+
+In dealing with the stateless interaction between a browser and a web server, the servlet API provides a method of tracking sessions and storing session information. Using getSession(false) retrieves the HttpSession object corresponding to the browser that sent the request, allowing the server to ask the client to return a cookie with a specified name. If the client returns a value that does not match any ongoing session, then the request is not part of an ongoing session, with getSession() returning a null value, and the servlet directing the user to a login page.
+
+The servlet life cycle begins with loading the servlet class, initializing the servlet by invoking the init() method once, and then handling the service requests using the service() method. Multiple requests can be handled in parallel, with each request resulting in a new thread within which the call is executed. The destroy() method is then invoked to take the servlet out of service, destroying the servlet instance once it is no longer needed.
+
+Thus, Java servlets and JSPs provide a powerful tool for building web applications, allowing for dynamic processing of HTTP requests, session tracking, and a robust life cycle.
+
+The emergence of client-side scripting has transformed the static, text-and-graphic-based Web pages of yesteryear into dynamic and interactive platforms for communication and commerce. By embedding program code within documents, web developers have opened up a world of possibilities for engaging with users beyond the limited confines of HTML and forms. This allows Web pages to perform activities such as animation and validation checks in real-time, all while executing programs on the client side, thereby speeding up interaction significantly. However, with great power comes great responsibility, and if the design of the system is done carelessly, program code embedded in a Web page can perform malicious actions on the user’s computer.
+
+Java, with its platform-independent "byte-code", became a popular solution for executing programs on users' computers, thanks to its safe mode that restricts programs from performing destructive actions. Similarly, simpler scripting languages, such as JavaScript, have emerged as the go-to solution for enriching user interaction while providing protection similar to Java. JavaScript, in particular, has become ubiquitous in the current generation of Web interfaces, allowing web developers to construct sophisticated user interfaces that perform error checks on user input, dynamically modify HTML code, and communicate asynchronously with the Web server.
+
+![Figure 125 - Example of JavaScript used to validate form input](125.png)
+
+Although the JavaScript language has been standardized, differences between browsers, especially in the details of the Document Object Model (DOM) model, can create problems for developers. To mitigate this, web developers often use JavaScript libraries, such as Yahoo's YUI library, that provide browser-independent functions that are optimized for different platforms.
+
+In conclusion, the emergence of client-side scripting has revolutionized the way we interact with the Web, allowing us to create dynamic and interactive platforms for communication and commerce. While the power of this technology is undeniable, it is crucial to use it responsibly and with care, to avoid malicious attacks and protect users' privacy and security.
+
 ### Application Architectures
+
+In the intricate world of software development, the architecture of large applications is often broken down into several layers to manage their complexity. The presentation or user interface layer, responsible for user interaction, is often conceptually divided further into distinct layers, based on the model-view-controller architecture. This approach allows for the creation of different views of an application, depending on the software or device used to access it.
+
+The business-logic layer, which provides a high-level view of data and actions on data, is where entities and actions are abstracted. For example, in an application designed for managing a university, the business-logic layer may provide abstractions for entities such as students, instructors, courses, and sections. In addition, workflows are included in the business logic, describing how a particular task is handled when it involves multiple participants. Error situations are also dealt with in this layer.
+
+The data access layer provides the interface between the business-logic layer and the underlying database. This layer is particularly important when using an object-oriented language to code the business-logic layer, as the data-access layer is responsible for mapping the object-oriented data model used by the business logic to the relational model supported by the database. Object-relational mapping, which automates this mapping process, is used to create in-memory objects on demand, as well as to store updated objects back as relations in the database.
+
+Various systems have been developed to implement object-relational mapping, including Hibernate, which is widely used for mapping from Java objects to relations. A mapping file specifies how each Java class is mapped to one or more relations, with information about the database specified in a properties file. This automated approach to mapping data models not only reduces the potential for errors but also increases efficiency, making the task less cumbersome.
+
+![Figure 126 - Web application architecture](126.png)
+
+The architecture of web applications is critical, as it impacts not only the development process but also the overall performance of the application. By breaking down the application into various layers, such as the presentation layer, the business logic layer, and the data access layer, developers can manage complexity more effectively, ensuring that business rules are satisfied and workflows are followed correctly.
 
 ### Rapid Application Development
 
+In the realm of web development, the creation of user interfaces can be a significant challenge, requiring considerable programming effort to construct elements such as menus, forms, and result displays. However, several techniques have emerged to reduce the burden of building these interfaces.
+
+One such approach is the provision of pre-built libraries of functions to generate user-interface elements with minimal programming, thereby allowing developers to focus more on business logic and database access. Additionally, drag-and-drop features in integrated development environments enable developers to drag user-interface elements from a menu into a design view of a page, with the IDE generating code that invokes library functions to create the element.
+
+Furthermore, automatic code generation from a declarative specification can simplify user interface development by reducing the amount of manual coding required. These approaches have been part of Rapid Application Development (RAD) tools for many years and are now widely used for creating web applications as well.
+
+Tools such as Oracle Forms, Sybase PowerBuilder, and Oracle Application Express (APEX) have been designed for the rapid development of interfaces for database applications, while others such as Visual Studio and Netbeans VisualWeb support several features designed for the rapid development of web interfaces for database-backed applications.
+
+To minimize the amount of code required to build user interfaces, many HTML constructs are generated using appropriately defined functions rather than being written as part of the code of each web page. For instance, menus can be generated from data in the database using a function that executes a database query and populates the menu using the query result. Similarly, forms that require validation can be generated using functions that output JavaScript code to perform validation at the browser.
+
+Displaying a set of results from a query is a common task for many database applications, and a generic function can be built to take an SQL query as an argument and display the tuples in the query result in a tabular form. Pagination of results can also be implemented to handle situations where the query result is very large.
+
+![Figure 127 - A formatted report](127.png)
+
+While there is no widely used standard Java API for carrying out user-interface tasks, tools such as JavaServer Faces (JSF) and Microsoft's Active Server Pages (ASP) provide a variety of controls that simplify the construction of web interfaces. These controls, such as drop-down menus and list boxes, can be associated with a DataSet object, which is similar to a JDBC ResultSet object and is typically created by executing a query on the database.
+
+Moreover, validator controls can be added to form input fields to specify validity constraints, and error messages to be displayed on invalid input can be associated with each validator control. Overall, these techniques have revolutionized the development of user interfaces for web applications, greatly reducing the effort required and making web development more accessible to developers of all skill levels.
+
 ### Application Performance
+
+Web developers face a Herculean task when it comes to ensuring fast response times for millions of users accessing their websites from all corners of the world. The challenge is compounded by the need to handle thousands of requests per second, if not more, for the most popular sites. To achieve this, developers employ a range of techniques to speed up processing and reduce overhead, such as caching and parallel processing.
+
+One technique that has proved effective in reducing overhead is connection pooling. With connection pooling, the application server creates a pool of open JDBC/ODBC connections and makes them available to the code servicing user requests. This eliminates the need to open a new connection to the database for each request, which can take several milliseconds and quickly become a bottleneck. The connection pool manager ensures that the maximum number of concurrent connections supported by the database is not exceeded, and closes any open connections that have not been used for a while.
+
+Web developers must also be vigilant about closing open connections to avoid overwhelming the database. Failure to do so can lead to the database reaching its limit for concurrent open connections, which only becomes apparent under heavy usage.
+
+Another effective technique for reducing costs is caching query results and web pages. By caching query results, developers can avoid repeated communication with the database for identical queries, greatly reducing overhead. Similarly, caching the final web page sent in response to a request can also eliminate the need to recompute the page when a new request with the same parameters comes in. Caching can be done at the fragment level or for complete web pages.
+
+Parallel processing is another popular technique used to handle heavy loads. This involves using multiple application servers to handle user requests in parallel, with a web server or network router used to route each request to a different application server. All requests from a particular client session must go to the same application server, to maintain the session state. However, the database is shared by all application servers, which can become a bottleneck if not properly managed. To avoid this, developers must minimize the number of requests to the database and employ parallel database systems where necessary.
 
 ### Application Security
 
+In today's technology landscape, ensuring application security has become a matter of utmost importance. With the increasing threat of hackers and malicious attacks, organizations must take proactive measures to safeguard their applications from potential vulnerabilities.
+
+Beyond the conventional SQL authorization protocols, application security must tackle several security issues that arise due to poorly written application code. The initial point where security must be enforced is within the application itself. To achieve this, applications must authenticate users and restrict users to only authorized tasks.
+
+Despite the database system's robust security measures, an application's security can still be compromised due to several security loopholes. In this regard, the section first sheds light on the loopholes that hackers can exploit to bypass authentication and authorization checks. Subsequently, the section describes techniques for secure authentication, fine-grained authorization, and audit trails that aid in recovering from unauthorized access and erroneous updates. Finally, the section concludes by highlighting issues concerning data privacy.
+
+Among the most significant security threats that applications face are SQL injection attacks, whereby hackers manipulate an application into executing an SQL query crafted by the attacker. To avoid such attacks, the best practice is to employ prepared statements that automatically add escape characters, making it impossible for user-supplied quotes to terminate strings. Additionally, applications that create queries dynamically must ensure that the input string is one of the allowed values to avoid this kind of SQL injection.
+
+Another significant security concern is the potential for cross-site scripting (XSS) attacks, which allow malicious users to enter client-side scripting languages instead of valid names or comments, potentially executing scripts that send private cookie information back to the attacker or execute an action on a different web server. To prevent such attacks, organizations must ensure that their applications incorporate measures such as proper input validation and output encoding to eliminate potential vulnerabilities.
+
+Proactive measures such as robust application security are critical to safeguarding against malicious attacks. By implementing best practices and following recommended guidelines, organizations can protect their applications from potential vulnerabilities and secure their data and sensitive information against unauthorized access.
+
+In today's technology landscape, ensuring application security has become a matter of utmost importance. With the increasing threat of hackers and malicious attacks, organizations must take proactive measures to safeguard their applications from potential vulnerabilities.
+
+Beyond the conventional SQL authorization protocols, application security must tackle several security issues that arise due to poorly written application code. The initial point where security must be enforced is within the application itself. To achieve this, applications must authenticate users and restrict users to only authorized tasks.
+
+Despite the database system's robust security measures, an application's security can still be compromised due to several security loopholes. In this regard, the section first sheds light on the loopholes that hackers can exploit to bypass authentication and authorization checks. Subsequently, the section describes techniques for secure authentication, fine-grained authorization, and audit trails that aid in recovering from unauthorized access and erroneous updates. Finally, the section concludes by highlighting issues concerning data privacy.
+
+Among the most significant security threats that applications face are SQL injection attacks, whereby hackers manipulate an application into executing an SQL query crafted by the attacker. To avoid such attacks, the best practice is to employ prepared statements that automatically add escape characters, making it impossible for user-supplied quotes to terminate strings. Additionally, applications that create queries dynamically must ensure that the input string is one of the allowed values to avoid this kind of SQL injection.
+
+Another significant security concern is the potential for cross-site scripting (XSS) attacks, which allow malicious users to enter client-side scripting languages instead of valid names or comments, potentially executing scripts that send private cookie information back to the attacker or execute an action on a different web server. To prevent such attacks, organizations must ensure that their applications incorporate measures such as proper input validation and output encoding to eliminate potential vulnerabilities.
+
+In a world where data breaches and cyber-attacks pose significant risks to organizations, proactive measures such as robust application security are critical to safeguarding against malicious attacks. By implementing best practices and following recommended guidelines, organizations can protect their applications from potential vulnerabilities and secure their data and sensitive information against unauthorized access.
+
 ### Encryption and Its Applications
+
+In a world that is increasingly reliant on technology, encryption has become a critical component for securing sensitive data. From credit-card numbers to fingerprints and social security numbers, businesses and organizations must safeguard this information from cybercriminals who seek to exploit it for personal gain.
+
+Encryption, the process of transforming data into an unreadable form that can only be reversed through decryption, has a long history dating back to the transmission of messages between senders and recipients who shared a secret key. However, as technology has advanced, encryption has become more sophisticated and is now widely used in a range of applications, such as data transfer on the Internet and cellular phone networks.
+
+But not all encryption techniques are created equal. Simple encryption methods, such as substituting each character with the next letter in the alphabet, may be vulnerable to hacking by unauthorized users. A strong encryption technique, on the other hand, must be relatively simple for authorized users to encrypt and decrypt data, and it must rely on the encryption key - rather than the algorithm itself - to keep data secure.
+
+One of the most widely-used encryption techniques today is the Advanced Encryption Standard (AES), a symmetric-key algorithm that operates on a 128-bit block of data at a time, with encryption keys that can be 128, 192, or 256 bits in length. AES was adopted as an encryption standard by the U.S. government in 2000 and is known for its robustness in safeguarding sensitive data.
+
+Despite the effectiveness of encryption, however, it is only as secure as the mechanism used to transmit the encryption key to authorized users. This vulnerability has prompted the development of alternative encryption schemes, such as public-key encryption, which uses two keys - a public key and a private key - to encrypt and decrypt data. Each user has a public key that is published and a private key that is known only to them, ensuring that unauthorized users are unable to access sensitive data.
+
+Encryption is a critical tool for safeguarding sensitive information. As businesses and organizations continue to store more and more data, the need for effective encryption techniques has never been greater.
+
+Digital signatures and digital certificates play a crucial role in authentication and non-repudiation in the world of cryptography. Public-key encryption is used to create digital signatures that act as electronic signatures for documents. The private key is used to sign the data, which can then be made public. Anyone can verify the signature using the public key, but only the person with the private key could have created the signature. This provides a way to authenticate data and verify that it was created by the person who claims to have created it.
+
+Digital certificates are a two-way authentication process used to ensure that a client is interacting with an authentic website. The public key of the site is signed by a certification agency, whose public key is widely known. The root certification authorities' public keys are stored in standard web browsers. The system uses a multi-level approach to reduce the burden of creating certificates on the root certification authorities. The digital certificate contains the name of the party to whom it was issued, the party's public key, and the public key of the certifying authority.
+
+To verify a certificate, the encrypted text is decrypted using the public key to retrieve the name of the party and authenticate the public key for the site. Digital certificates are widely used in HTTPS to authenticate websites to users and prevent malicious sites from masquerading as other websites. The site provides its digital certificate to the browser, which uses the provided public key to encrypt data. The browser creates a one-time symmetric key after authentication, which reduces encryption costs. Digital certificates can also be used for authenticating users by submitting a digital certificate containing the user's public key to a site. The certificate is verified by a trusted authority, and the user's public key can be used to authenticate the user using a challenge-response system.
+
+Digital signatures and digital certificates are crucial for authentication and non-repudiation in the world of cryptography. These techniques use public-key encryption and a multi-level approach to ensure authenticity and prevent malicious activities.
 
 # DATA STORAGE AND QUERYING
 
+In the age of big data, the intricacies of database systems can sometimes be overlooked by those who only view them through a high-level lens. However, at their core, these systems rely on the physical storage of data as bits on various devices, such as magnetic disks or flash storage. The speed at which data can be accessed is largely determined by the characteristics of these devices, with disk access taking significantly longer than memory access.
+
+To navigate the challenges of physical storage, Chapter 10 of this text provides an in-depth overview of storage media, including measures to prevent data loss due to device failure. The chapter also delves into the mapping of records to files and ultimately to bits on a disk.
+
+As many queries only reference a small percentage of records within a file, indices play a crucial role in facilitating speedy data retrieval without the need to scan all records. Chapter 11 explores various types of indices utilized in database systems, with an example provided in the text for human use.
+
+Breaking down complex user queries into smaller, more manageable operations. The text outlines algorithms for implementing individual operations and explains how these operations are executed in unison to process a query.
+
+Given the range of options available for processing a given query, the chapter introduces the concept of query optimization. This process seeks to identify the most cost-effective method for evaluating a query, with varying approaches and costs to consider. In sum, these chapters provide a comprehensive understanding of the essential elements underpinning database systems, from physical storage to query optimization.
+
 ## Storage and File Structure
+
+In the world of databases, the focus is often on the high-level models that allow users to access data with ease. Indeed, a database system's ultimate goal is to simplify the process of accessing and managing data, and users should not be unduly burdened with the physical details of the system's implementation.
+
+However, in this chapter and the following ones, we dive beneath the surface to examine the methods used to implement these models and languages. We begin by exploring the fundamental properties of the underlying storage media, including disk and tape systems, before delving into the various data structures that facilitate rapid data access.
+
+By examining different structures and their suitability for specific types of data access, we can make informed decisions about the optimal data structure to utilize based on the expected usage and the physical constraints of the particular machine in question. In short, this chapter serves as a crucial foundation for understanding the inner workings of a database system, and the subsequent chapters will continue to build on this knowledge.
 
 ### Overview of Physical Storage Media
 
+Data is the lifeblood of any enterprise, and its storage is paramount. From the fleet-footed cache to the lumbering tape, the range of storage media available to computer systems is varied and vast. Each storage type is categorized by its speed, cost, and reliability, and each has its unique strengths and weaknesses.
+
+At the peak of this hierarchy sits the cache, a fleeting but costly storage medium. The cache's minuscule size is managed by computer system hardware, with its effects considered when designing query processing data structures and algorithms.
+
+Next in line is the main memory, the storage medium that houses data available for processing by the general-purpose machine instructions. Although it can accommodate several gigabytes of data in a personal computer, it is typically inadequate for storing an entire database. Additionally, the contents of the main memory are often lost in the event of a system crash or power failure.
+
+Enter the flash memory, a storage medium that differs from the main memory in its non-volatile nature. Stored data persists even when power is lost, thanks to two types of flash memory, NAND and NOR. NAND flash is more cost-effective and accommodates larger storage capacities for the price. It is widely utilized in portable devices like cameras, music players, and cell phones, and increasingly in laptop computers.
+
+Flash memory is increasingly replacing magnetic disks, serving as solid-state drives that store moderate amounts of data. Its cost per byte is lower than that of main memory, while its larger storage capacity is a boon to system performance. Flash memory is also used in server systems to cache frequently used data, enabling faster access than disks and more storage capacity than main memory.
+
+Magnetic disk storage remains the go-to medium for long-term online storage of data. As the primary medium for storing entire databases, magnetic disks must transfer data to the main memory for processing. Magnetic disks are available in sizes ranging from 80 gigabytes to 1.5 terabytes, with prices beginning at $100 for a 1 terabyte disk. Disk storage survives system crashes and power failures, although disk storage devices themselves may sometimes fail and destroy data.
+
+Optical storage, on the other hand, is exemplified by the compact disk (CD) and the digital video disk (DVD), with optical data storage that is read by a laser. CDs can hold about 700 megabytes of data and have an 80-minute playtime, while DVDs hold between 4.7 and 8.5 gigabytes of data per disk side. Blu-ray DVDs, with 27 gigabytes of capacity per layer, have a double-layer disk capacity of 54 gigabytes.
+
+Tape storage, although slower than disks, is cheaper and well-suited to backup and archival data storage. Tapes can store between 40 and 300 gigabytes of data, making them ideal for exceptionally large data collections such as satellite data, which can easily top hundreds of terabytes or even multiple petabytes.
+
+In conclusion, data storage media is a complex and dynamic field that evolves rapidly. With each medium having its unique benefits, choosing the appropriate storage medium for a specific need is critical.
+
+![Figure 128 - Storage device hierarchy](128.png)
+
 ### Magnetic Disk and Flash Storage
+
+Magnetic disks have long been the primary medium for secondary storage. However, as the storage requirements of large applications continue to outpace the growth rate of disk capacities, there has been a growing need for alternative solutions. Enter flash-memory storage, whose sizes have expanded exponentially in recent years, positioning it as a potential competitor to magnetic disk storage in select applications.
+
+In order to better understand the underlying physical characteristics of disks, one must take a closer look at their construction. Disk platters, each having a flat, circular shape, are composed of rigid metal or glass, and possess two surfaces covered with a magnetic material, on which data is recorded. When in use, the platters are spun by a drive motor at a constant high speed, typically ranging from 60 to 120 revolutions per second. To read or write data, a read-write head is positioned just above the platter surface, and the disk surface is divided into tracks and sectors. In today's disks, sector sizes are typically 512 bytes, with around 50,000 to 100,000 tracks per platter, and 1 to 5 platters per disk.
+
+![Figure 129 - Moving head disk mechanism](129.png)
+
+The read-write head, which magnetically stores information on a sector by reversing the direction of magnetization of the magnetic material, moves across the platter to access different tracks. All of the read-write heads on a disk, which may contain many platters, are mounted on a single assembly called a disk arm, and move together, creating the so-called head-disk assembly. The read-write heads being synchronized in this manner means that the ith tracks of all the platters together are referred to as the ith cylinder. In order to increase recording density, the heads are kept as close as possible to the disk surface, typically floating only microns above it.
+
+However, head crashes remain a serious problem. If the head comes into contact with the disk surface, it can scrape off the recording medium, effectively destroying any data present. In older-generation disks, this often led to the medium becoming airborne and coming between the other heads and their platters, causing additional crashes that could result in the failure of the entire disk. Current-generation disk drives utilize a thin film of magnetic metal as the recording medium, making them much less susceptible to failure from head crashes than older oxide-coated disks.
+
+To interface between the computer system and the disk drive unit, a disk controller is employed. This crucial component accepts high-level commands to read or write data and initiates actions such as moving the disk arm to the right track and performing the read or write operation. Disk controllers attach checksums to each sector that is written, which are computed from the data written to the sector. When the sector is read back, the controller computes the checksum again from the retrieved data and compares it with the stored checksum. If an error is detected, the controller will retry the read several times before signaling a failure. Additionally, if a sector is found to be damaged, the controller will remap the sector to a different physical location.
+
+Disks are connected to a computer system via a high-speed interconnection, and there are several interfaces for connecting disks to computers, including SATA and SCSI. However, as the field of data storage technology continues to rapidly evolve, one can be certain that these interfaces will continue to evolve as well.
+
+A clear distinction arises between sequential and random access patterns. In the former, successive requests for data are made in an orderly fashion, with contiguous blocks on the same track or on adjacent tracks being accessed. The first request in such a pattern may require a disk seek, but subsequent requests would either not require a seek or necessitate a seek to an adjacent track, which is much faster than a desire to a farther track.
+
+On the other hand, in a random access pattern, successive requests are for blocks that are randomly located on the disk. Each such request would require a disk seek, and the number of random block accesses that can be processed by a single disk in a second depends on the seek time, which is typically about 100 to 200 accesses per second. Furthermore, since only one block of data is read per seek, the transfer rate is considerably lower with a random access pattern than with a sequential access pattern.
+
+Several techniques have been developed to enhance the speed of access to blocks, including buffering, read-ahead, scheduling, file organization, and nonvolatile write buffers. Buffering involves temporarily storing the blocks read from the disk in an in-memory buffer, which can be used to satisfy future requests. Read-ahead entails reading consecutive blocks from the same track into an in-memory buffer, even if there is no pending request for those blocks. Such read-ahead is useful for sequential access, where it ensures that many blocks are already in memory when they are requested, thereby minimizing the time wasted in disk seeks and rotational latency per block read. Scheduling algorithms attempt to order accesses to tracks in a fashion that increases the number of accesses that can be processed, while file organization involves organizing blocks on disk in a way that corresponds closely to the way data is expected to be accessed.
+
+Finally, nonvolatile write buffers utilize nonvolatile random-access memory (NVRAM) to speed up disk writes dramatically. Battery-backed-up RAM or flash memory can be used to implement NVRAM, and the contents of NVRAM are not lost in a power failure. In update-intensive database applications such as transaction-processing systems, the speed of disk writes heavily influences performance, making nonvolatile write buffers an indispensable tool in boosting performance.
 
 ### RAID
 
+As the world's data storage needs continue to skyrocket, with particular emphasis on web, multimedia, and database applications, there has been a pressing demand for faster and more reliable storage solutions. Redundant arrays of independent disks (RAID) are an innovative and powerful technology that has emerged to address these needs.
+
+![Figure 130 - RAID levels](130.png)
+
+By allowing for a large number of disks to be operated in parallel, RAID systems offer unparalleled read/write speeds that are essential for handling data-intensive applications. Performing independent reads and writes in parallel further enhances the system's overall performance.
+
+However, their remarkable reliability may be the most impressive feature of RAID systems. Disk failure is an ever-present danger that can result in the loss of large amounts of valuable data. But RAID technology introduces redundancy, storing extra information that is not ordinarily needed but can be used to rebuild lost information in the event of a disk failure. Mirroring, the most basic RAID technique, duplicates every disk and carries out every write on both disks, so if one disk fails, the data can still be retrieved from the other disk. This redundancy ensures that data are never lost and the mean time to failure is greatly extended.
+
+![Figure 131 - Pattern](131.png)
+
+RAID systems offer an innovative and powerful storage solution that is essential for handling the ever-increasing data storage demands of modern society. By allowing for high-performance parallel reads and writes and introducing redundancy to increase reliability, RAID technology ensures that data are always safe and accessible.
+
+The choice of RAID level is a critical decision that can significantly impact the performance and reliability of a system. With the monetary cost of extra disk storage requirements and the number of I/O operations needed for optimal performance being key factors, the decision of whether to opt for the more popular RAID level 1 or the storage-efficient RAID level 5 is a tough one that requires careful consideration of the unique needs of each application.
+
+As disk-storage capacities continue to grow at an unprecedented rate, the cost per byte has fallen dramatically, making mirroring a more viable option for many existing database applications with moderate storage requirements. However, access speeds have not kept pace with this growth, and the number of I/O operations required per second has skyrocketed, particularly for web application servers. This puts a premium on choosing a RAID level that can deliver the necessary write performance without sacrificing reliability or storage efficiency.
+
+To this end, RAID system designers must make several other crucial decisions, including the number of disks in an array and the number of bits protected by each parity bit. While a higher number of disks can boost data-transfer rates, it also raises the system's cost, while increasing the number of bits protected by a parity bit lowers the space overhead due to parity bits but heightens the risk of data loss if a second disk fails before the first one is repaired.
+
+Hardware is another vital consideration in choosing a RAID implementation, with hardware RAID systems offering several benefits over software RAID. For instance, special-purpose hardware can use nonvolatile RAM to record writes before they are performed, ensuring that incomplete writes are completed in case of power failure. Additionally, good RAID controllers can perform scrubbing to minimize the chance of data loss caused by latent failures or bit rot.
+
+All in all, choosing the right RAID level is a critical decision that requires careful weighing of several factors, including monetary cost, performance requirements, and data safety. With the right combination of RAID level and hardware implementation, data storage and retrieval systems can deliver the high performance and reliability that modern applications demand.
+
 ### Tertiary Storage
+
+A peculiar tertiary storage emerges - one that is capable of hosting voluminous amounts of data. Indeed, such data often necessitates the deployment of secondary storage, but when even the latter proves insufficient for the task, tertiary storage provides a solution.
+
+Two prime examples of tertiary storage media come to mind - the magnetic tape and the optical disk. Both serve unique purposes in the storage hierarchy, but in this exposition, we shall focus on the latter.
+
+Compact disks (CDs) have become a popular means of distributing software and multimedia data, including audio and images, and other electronically published content. These disks have a storage capacity ranging from 640 to 700 megabytes, and they can be mass-produced at a low cost. However, digital video disks (DVDs) have replaced CDs in applications requiring higher data volumes. DVD-5 format disks can store up to 4.7 gigabytes of data on a single recording layer, while DVD-9 format disks can store up to 8.5 gigabytes of data on two recording layers. Double-sided disks, such as the DVD-10 and DVD-18 formats, can store even more data - up to 9.4 gigabytes and 17 gigabytes, respectively.
+
+Blu-ray DVDs have set a new benchmark, boasting a capacity of 27 to 54 gigabytes per disk. However, optical disks' seek times are much longer than those of magnetic disks due to their relatively heavier head assembly. They also have lower rotational speeds, although faster CD and DVD drives rotate at speeds comparable to lower-end magnetic disk drives. Optical disks store more data in outside tracks and fewer data in inner tracks, like magnetic disk drives. Their data transfer rates are lower than those of magnetic disks, but they have a transfer rate characteristic of n×, indicating that they can transfer data at n times the standard rate.
+
+Optical disks come in two forms - the record-once version (CD-R, DVD-R, and DVD+R) and the multiple-write version (CD-RW, DVD-RW, DVD+RW, and DVD-RAM). The former is popular for distributing data and archival storage since it cannot be overwritten and is ideal for storing unalterable data, such as audit trails. The latter is also useful for archival purposes.
+
+To achieve even more massive storage capacity, jukeboxes come in handy. These devices store hundreds of optical disks that can be loaded automatically onto one of several drives. The system's aggregate storage capacity can be in the terabytes, with disk load/unload time being much longer than disk access times.
 
 ### File Organization
 
+In the realm of database management, the organization of data is crucial for ensuring efficient and effective data retrieval. To this end, files are the basic construct of operating systems and are essential for mapping a database into a series of files that reside permanently on disks. Each file is organized logically as a sequence of records, which are then mapped onto disk blocks.
+
+![Figure 132 - Example](132.png)
+
+In turn, each file is partitioned into fixed-length storage units known as blocks. These blocks serve as the units of storage allocation and data transfer, and most databases use block sizes of 4 to 8 kilobytes by default, although larger block sizes can be specified for specific database applications.
+
+![Figure 133 - File containing instructor records](133.png)
+
+It is important to note that each record must be entirely contained within a single block, and no record should be larger than a block. Although there are large data items such as images that can exceed the block size, these can be handled by storing them separately and including a pointer to the data item in the record. In addition, a relational database has tuples of different sizes. To account for this, we may use several files and store records of only one fixed length in each file. Alternatively, we can structure our files to accommodate multiple lengths for records. However, files of fixed-length records are easier to implement than files of variable-length records.
+
+![Figure 134 - File with record 3 deleted and all records moved](134.png)
+
+![Figure 135 - File with record 3 deleted and ﬁnal record moved](135.png)
+
+In dealing with fixed-length records, let us consider a file of instructor records for a university database as an example. We can allocate the maximum number of bytes that each attribute can hold, which results in an instructor record that is 53 bytes long. However, a simple approach of using the first 53 bytes for the first record, the next 53 bytes for the second record, and so on, would not work. This approach results in records crossing block boundaries, and it becomes difficult to delete records from this structure.
+
+![Figure 136 - File with free list after deletion of records 1, 4, and 6](136.png)
+
+To solve these problems, we allocate only as many records to a block as would fit entirely within the block, leaving any remaining bytes unused. When deleting records, we can move the final record of the file into the space occupied by the deleted record, rather than moving every record following the deleted record. This approach minimizes the number of records that need to be moved and avoids additional block accesses.
+
+![Figure 137 - Representation of variable-length record](137.png)
+
+To manage available space, we introduce an additional structure in the form of a file header that contains information about the file, including the address of the first record whose contents are deleted. By following this approach, we can organize fixed-length records in a way that maximizes efficiency and minimizes errors.
+
+![Figure 138 - Slotted-page structure](138.png)
+
 ### Organization of Records in Files
+
+The organization of records in files is a critical aspect of efficient data management. Different techniques are used to store records in files, including heap file organization, sequential file organization, and hashing file organization. These methods enable fast and efficient processing of records, depending on the specific requirements of a given database.
+
+![Figure 139 - Sequential ﬁle for instructor records](139.png)
+
+Sequential file organization, for instance, is designed to facilitate the processing of sorted records based on some search key. To achieve this, records are stored physically in search-key order, and chains of pointers are used to link them together. 
+
+![Figure 141 - Example](141.png)
+
+While this organization permits fast retrieval of records in search-key order, it can be challenging to maintain physical sequential order as records are inserted and deleted. To address this issue, pointer chains are utilized for record deletion, while specific rules guide the insertion of new records.
+
+![Figure 140 - Sequential ﬁle after an insertion](140.png)
+
+![Figure 142 - The department relation](142.png)
+
+![Figure 143 - The instructor relation](143.png)
+
+Multitable clustering file organization is another technique used to store records of different relations in the same file. In this approach, related records of different relations are stored on the same block, allowing fast retrieval of related records from different relations in a single I/O operation. Although this simple file structure is well suited to small database systems such as those found in embedded systems or portable devices, more complex file structures may be required for larger databases to ensure optimal performance.
+
+Understanding the various techniques for organizing records in files is vital for the effective management of database systems. These techniques enable fast and efficient processing of records, depending on the specific requirements of a given database.
+
+![Figure 144 - Multitable clustering ﬁle structure](144.png)
+
+![Figure 145 - Multitable clustering ﬁle structure with pointer chains](145.png)
 
 ### Data-Dictionary Storage
 
+The storage of metadata, also known as "data about data", is crucial for any relational database system. This includes information about the schema of relations, views, integrity constraints, and authorized users. In addition, statistical data such as the number of tuples and storage methods for each relation may also be stored. The data dictionary, or system catalog, is the structure that stores all of this important metadata.
+
+To ensure efficient access to system data, it is recommended to store metadata as relations within the database itself. However, the exact representation of this metadata must be determined by the system designers. One possible representation is shown in the Figure, which is not in first normal form but is likely to be more efficient for access.
+
+When retrieving records from a relation, the database system must consult the related metadata to find the location and storage organization of the relation. It is important to note that the storage organization and location of the relation metadata itself must be recorded elsewhere for easy retrieval.
+
+In essence, the metadata stored in the data dictionary constitutes a miniature database that serves as the backbone for the entire relational database system.
+
+![Figure 146 - Relational schema representing system metadata](146.png)
+
 ### Database Buffer
+
+In the realm of database systems, the maximization of efficiency is the ultimate goal. One of the most crucial objectives in achieving this is to minimize the number of block transfers between the memory and disk. The method by which we can accomplish this is to retain as many blocks as possible in the main memory. The intention is to heighten the likelihood that when a block is accessed, it already exists in the main memory, and as a result, no disk access is necessary.
+
+The space available in the main memory for the storage of blocks must be allocated wisely, as it is not feasible to keep all blocks in the main memory. The buffer, which is part of the main memory available for the storage of copies of disk blocks, is responsible for the allocation of buffer space, and the subsystem managing it is known as the buffer manager. Every block has a copy on disk, but the copy on disk may be an older version than the one in the buffer.
+
+When a program in the database system requests a block from the disk, it makes a call to the buffer manager. If the block already exists in the buffer, the buffer manager delivers the address of the block in the main memory to the requester. However, if the block is not in the buffer, the buffer manager must first allocate space in the buffer for the block. To make room for the new block, the buffer manager may have to discard another block. If the discarded block has been modified since it was last written to disk, it must be written back to the disk. The buffer manager then reads the requested block from the disk to the buffer and delivers the address of the block in the main memory to the requester. The buffer manager's internal activities are imperceptible to the programs that request disk-block access.
+
+To many, the buffer manager appears to be nothing more than a virtual-memory manager, much like those found in most operating systems. However, the size of the database could exceed the hardware address space of a machine. Furthermore, the buffer manager must employ more sophisticated methods than typical virtual-memory management schemes to serve the database system effectively. These include buffer replacement strategies, pinned blocks, and forced output of blocks.
+
+![Figure 147 - Procedure for computing join](147.png)
+
+The buffer replacement policy's primary goal is to reduce access to the disk by replacing blocks in the buffer. Since it is not feasible to forecast which blocks will be referenced by general-purpose programs, operating systems use past block-reference patterns as a predictor of future references. In contrast, database systems may have information concerning at least the short-term future because a user request to the database system involves multiple steps.
+
+The toss-immediate strategy is an example of a buffer management strategy. It instructs the buffer manager to free the space taken up by an instructor block as soon as the final tuple has been processed, even though the block has been used recently. Another example is the read-ahead strategy, where the buffer manager reads blocks into the buffer in anticipation of future block accesses. The buffer manager then removes the blocks from the buffer once they are no longer required. These approaches, which utilize information about future block access, allow us to improve the LRU strategy.
 
 ## Indexing and Hashing
 
+In the vast realm of databases, the efficiency of queries that access only a fraction of the records is crucial. Why waste precious time and resources sifting through irrelevant tuples when we can swiftly locate the desired ones? Queries such as "Find all instructors in the Physics department" or "Find the total number of credits earned by the student with ID 22201" only require a small subset of records to be accessed, rendering a traditional read of the entire relation impractical. Therefore, additional structures, such as indexing and hashing, are implemented to enhance the system's performance and enable direct access to the desired records.
+
 ### Basic Concepts
+
+In the world of database systems, indices play a pivotal role in efficiently accessing data. An index is much like the index in a textbook, allowing us to quickly locate the pages containing the desired information. Similarly, a database index allows us to quickly find the disk block containing the data record that matches our search criteria.
+
+However, maintaining a sorted list of data values, such as a list of student IDs, can become unwieldy in large databases with thousands of entries. This is where sophisticated indexing techniques come into play, such as ordered indexing and hashing.
+
+Each indexing technique has its own strengths and weaknesses and must be evaluated based on a variety of factors, including access types, access time, insertion time, deletion time, and space overhead. While no one technique is universally superior, each is best suited to specific database applications.
+
+It is also common to have multiple indices for a single file, such as indices for author, subject, and title searches. These attributes used to look up records in a file are known as search keys.
+
+Database indexing is a complex and nuanced one, with a variety of techniques available to suit different needs. Whether using ordered indices or hash indices, it is crucial to consider the various factors involved in evaluating the effectiveness of each technique and to carefully choose the search keys for each index to ensure efficient and accurate data access.
 
 ### Ordered Indices
 
+The efficient retrieval of records is a key concern. To facilitate this process, an index structure can be employed. Such a structure is associated with a specific search key and stores the values of the search keys in sorted order. The ordered index, similar to a book's index, enables fast random access to records, and each search key is associated with the records that contain it.
+
+In some cases, the records themselves may be stored in some sorted order, and a file may have multiple indices on different search keys. If the file is sequentially ordered, a clustering index is used to define the sequential order of the file. Such an index is also called a primary index and can be built on any search key, not necessarily a primary key.
+
+Indices whose search key specifies an order different from the sequential order of the file are called non-clustering indices or secondary indices. Dense indices and sparse indices are two types of ordered indices. A dense index contains an index entry for every search-key value in the file, while a sparse index contains entries for only some of the search-key values.
+
+![Figure 148 - Sequential ﬁle for instructor records](148.png)
+
+A search in a dense index is quicker as each index record contains a search-key value and a pointer to the first data record with that search-key value. Sparse indices, on the other hand, can only be used if the relation is stored in the sorted order of the search key. In such cases, each index entry contains a search-key value and a pointer to the first data record with that search-key value. To locate a record, we find the index entry with the largest search-key value that is less than or equal to the search-key value for which we are looking.
+
+![Figure 149 - Dense index](149.png)
+
+The use of ordered indices is crucial for applications that require both sequential processing of an entire file and random access to individual records. By utilizing such structures, we can expedite record retrieval and optimize database performance.
+
+![Figure 150 - Sparse index](150.png)
+
+![Figure 151 - Dense index with search key dept name](151.png)
+
+Even the most efficient search mechanisms can be brought to their knees by the sheer size of an index file. Such files, stored as sequential files on disk, can become unwieldy and time-consuming to search as they grow into the gigabyte range. This can lead to frustration for users who require quick access to data.
+
+Enter the multilevel index - a tool that promises to make searching large index files a breeze. By constructing a sparse outer index on top of an inner index, a multilevel index allows users to perform a search using just one index block read, as opposed to the 14 required by binary search.
+
+But what happens when even the outer index grows too large to fit into the main memory? No problem - simply create another level of the index. In fact, the process can be repeated as many times as necessary to accommodate even the largest index files.
+
+![Figure 152 - Two-level sparse index](152.png)
+
+Of course, every index must be updated whenever a record is inserted, deleted, or updated in the file. This can be modeled as a deletion of the old record followed by an insertion of the new value, resulting in an index deletion followed by an index insertion. But with algorithms designed for single-level indices, the process of updating a multilevel index need not be a headache.
+
+So whether you're managing a small-scale database or one that's millions of records strong, the multilevel index is a tool you'll want to have in your arsenal. Its power lies in its ability to perform fast and efficient searches, making it a must-have for any serious data manager.
+
+The concept of secondary indices plays a critical role in the efficient retrieval of records based on search-key values. A secondary index is considered dense, meaning that every search-key value has a corresponding index entry, along with a pointer to each record in the file. This stands in contrast to a clustering index, which can afford to be sparse, as it is always possible to sequentially access a portion of the file to locate records with intermediate search-key values.
+
+When a secondary index is created on a candidate key, it closely resembles a dense clustering index. However, if the search key of a secondary index is not a candidate key, then it must contain pointers to all records, as the records are not ordered by the search key of the secondary index. In this scenario, an extra level of indirection is used to implement the secondary index, with pointers directed to a bucket containing pointers to the file.
+
+![Figure 153 - Secondary index on instructor ﬁle, on noncandidate key salary](153.png)
+
+Indices on multiple keys, known as composite search keys, offer further potential for database optimization. An ordered index on a composite key allows for efficient retrieval of records based on multiple attributes, using lexicographic ordering to establish the order of search-key values.
+
+While secondary indices can significantly improve query performance, they also impose a substantial overhead on database modification. Therefore, the decision to implement secondary indices is made on the basis of an estimate of the relative frequency of queries and modifications.
+
 ### B+-Tree Index Files
+
+As we delve into the world of database indexing, we encounter the well-known limitation of the index-sequential file organization: its performance degrades as the file size grows. Frequent file reorganization can alleviate this, but it's an undesirable solution.
+
+Enter the B+-tree index structure, the most widely used indexing structure that maintains efficiency despite data insertion and deletion. It takes the form of a balanced tree where every path from the root to a leaf is of equal length. Each non-leaf node has between n/2 and n children, where n is a fixed value for a particular tree.
+
+![Figure 154 - Typical node of a B+-tree](154.png)
+
+![Figure 155 - A leaf node for instructor B+-tree index (n = 4)](155.png)
+
+Despite imposing performance and space overhead on insertion and deletion, the B+-tree structure provides acceptable results even for frequently modified files as the cost of file reorganization is avoided. And with nodes capable of holding up to half-empty children, wasted space is a small price to pay for the performance benefits of the B+-tree structure.
+
+![Figure 156 - B+-tree for instructor ﬁle (n = 4)](156.png)
+
+A B+-tree index is a multilevel index, unlike the multilevel index-sequential file, and the structure of its nodes differs as well. Each node can contain up to n-1 search-key values and n pointers, which are kept in sorted order. The ranges of values in each leaf do not overlap, except for duplicate search-key values, and every search-key value must appear in some leaf node.
+
+![Figure 157 - B+-tree for instructor ﬁle with n = 6](57.png)
+
+![Figure 158 - Querying a B+-tree](158.png)
+
+With a linear order of leaves based on their search-key values, the pointer Pn is used to chain the leaf nodes together in search-key order, allowing for efficient sequential processing of the file. Non leaf nodes of the B+-tree form a multilevel index on the leaf nodes, with a similar structure as the leaf nodes, but with all pointers pointing to tree nodes instead.
+
+The B+-tree index structure provides a dynamic indexing solution that maintains its efficiency despite data insertion and deletion. Its multilevel structure allows for efficient sequential processing of the file, with acceptable performance and space overhead for frequently modified files. As we look toward the future of database indexing, the B+-tree structure remains a reliable and widely used option.
+
+The B+-tree structure stands apart from its in-memory tree brethren. While binary trees consist of small nodes, each having no more than two pointers, the nodes in B+ trees are comparably large - often an entire disk block - and can contain a considerable number of pointers. As such, B, trees adopt a shape that is the inverse of the tall, skinny binary tree, instead opting for a short, wide structure.
+
+![Figure 159 - Split of leaf node on insertion of "Adam"](159.png)
+
+However, despite their differences in size, both B+ trees and binary trees are useful for indexing records in a file, and the effectiveness of their lookup operations is contingent on the number of records contained therein. In a balanced binary tree, for instance, the length of the path for a lookup would be proportional to the logarithm of the number of records in the indexed file. For a file with one million records, this would necessitate around 20 node accesses.
+
+![Figure 160 - Insertion of “Adams” into the B+-tree](160.png)
+
+![Figure 161 - Insertion of “Lamport” into the B+-tree](161.png)
+
+If each node were located on a different disk block, 20 block reads would be required to process a lookup. This is in stark contrast to the mere four block reads needed for the B+-tree, where nodes are more capacious and can hold more pointers. The difference in required block reads may seem trivial, but the time cost of each read, coupled with the need for disk arm seeks, compounds the disparity. Such a read with a disk arm seeks can take upwards of 10 milliseconds on a typical disk, which is no small delay in the realm of computing.
+
+![Figure 162 - Insertion of entry in a B+-tree](162.png)
+
+Updating records in a relation can be challenging, especially when indices are involved. A record update can be modeled as a deletion of the old record followed by an insertion of the updated record. Insertions and deletions can be more involved than lookups since they may necessitate node splitting, where a node is divided in two, or node coalescing, where two nodes are combined. In addition, when a node is split or combined, the balance of the tree must be maintained.
+
+![Figure 163 - Deletion of “Singh” and “Wu” from the B+-tree](163.png)
+
+When inserting a record into a B+-tree, one must first find the leaf node that should contain the new record. After doing so, an entry - consisting of the search-key value and record pointer pair - can be added to the node in such a way that the search keys remain sorted. Conversely, when deleting a record, the node containing the entry to be deleted must first be found, and the entry can then be removed. The remaining entries in the node to the right of the deleted entry are then shifted left by one position so that there are no gaps in the entries.
+
+![Figure 164 - Deletion of “Gold” from the B+-tree](164.png)
+
+Node splitting can occur when a node becomes too large to hold its contents, and the example given in the text illustrates this. If a record with the name "Adams" is inserted into a B+-tree, and the leaf node containing "Brandt," "Califieri," and "Crick" does not have enough space to accommodate it, the node must be split into two separate nodes. The first n/2 search-key values are kept in the existing node, while the remaining search-key values are added to the newly created node. The new leaf node is then inserted into the B+-tree structure by adding an entry - consisting of the smallest search-key value and a pointer to the new node - into the parent of the split node.
+
+Overall, the updating of records in a B+-tree structure is complex, as it involves a delicate balance of node splitting, node coalescing, and parent-node insertion, all with an eye toward maintaining the overall balance of the tree.
+
+The importance of efficient and speedy search operations cannot be overstated. Enter the B+-tree, a ubiquitous index structure used to optimize search operations on large datasets. However, as with any system, there are limitations to be addressed, such as the handling of nonunified search keys.
+
+In situations where a relation can contain multiple records with the same search key value or a nonunified search key, the process of deleting a specific record can prove arduous. With a large number of entries to sift through, even spanning multiple leaf nodes, finding the corresponding entry for deletion can be a time-consuming process. To combat this, most database systems utilize a composite search key that contains the original search key and another attribute, unique to each record, creating a unique search key for each record. This extra attribute, known as the unifier attribute, enables the database to locate and delete the record efficiently with a single traversal from root to leaf.
+
+While nonunified search keys pose challenges, an alternative to the traditional storage method exists, where each key value is stored only once in the tree, with a bucket or list of record pointers used to handle nonunified search keys. This approach is more space-efficient, but implementation comes with extra complexities, such as variable-sized buckets, fetching records across multiple blocks, and inefficient deletion operations.
+
+![Figure 165 - Procedure for computing join](165.png)
+
+Despite the complexities, B+-trees remain a popular choice for index structures in database management systems, with their low I/O operation costs for insertion and deletion. The worst-case complexity of these operations is proportional to the height of the B+-tree, and with a fanout of 100, operations result in fewer I/O operations than the worst-case bounds. In addition, with large memory sizes being commonplace, most non-leaf nodes are already in the database buffer when they are accessed, and only one or two I/O operations are required for a lookup.
+
+Furthermore, with random insertions, B+-tree nodes can be expected to be more than two-thirds full on average, and even in the case of sorted insertions, they are only half full. The B+-tree's capabilities and limitations must be carefully considered when implementing a database management system, but their efficiency and speed make them a reliable and often utilized tool in large-scale data management.
 
 ### B+-Tree Extensions
 
