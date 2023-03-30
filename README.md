@@ -367,17 +367,15 @@ from instructor;
 
 The where clause allows the selection of specific rows in the query result based on a specified predicate.
 
-```
-select ID, name, dept name, salary *1.1 
+```select ID, name, dept name, salary *1.1
 from instructor;
 ```
 
-The SQL language allows us to manipulate data in a relational database. We can use arithmetic expressions to modify the values of attributes or create new attributes, but this does not modify the original relation. 
+The SQL language allows us to manipulate data in a relational database. We can use arithmetic expressions to modify the values of attributes or create new attributes, but this does not modify the original relation.
 
 ![24](https://user-images.githubusercontent.com/124214430/228469344-a8975781-6fae-4f34-84b7-50f40ca5d6c8.png)
 
-```
-select name 
+```select name
 from instructor 
 where dept name = ’Comp. Sci.’ and salary > 70000;
 ```
