@@ -274,11 +274,9 @@ The Cartesian product operation combines tuples from two relations, regardless o
 
 The chapter discusses various database query languages but focuses on the widely used SQL language. SQL can do more than just querying a database; it can also define data structure, modify data, and specify security constraints. The chapter covers SQL's fundamental concepts and constructs and acknowledges that individual SQL implementations may differ in details or support only a subset of the full language.
 
-
 ### Overview of the SQL Query Language
 
 The SQL language was originally developed by IBM in the 1970s and has evolved into the standard relational database language. ANSI and ISO have published several versions of the SQL standard, including SQL-86, SQL-89, SQL-92, SQL:1999, SQL:2003, SQL:2006, and SQL:2008. The SQL language consists of various parts, including DDL, DML, integrity, view definition, transaction control, embedded SQL and dynamic SQL, and authorization. The chapter presents an overview of basic DML and DDL features of SQL, while Chapters 4 and 5 cover more advanced features. Although most SQL implementations support standard features, differences between implementations exist, and users should consult their database system's user manuals to determine which features are supported.
-
 
 ### SQL Data Deﬁnition
 
