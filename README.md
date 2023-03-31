@@ -3070,33 +3070,305 @@ Furthermore, with random insertions, B+-tree nodes can be expected to be more th
 
 ### B+-Tree Extensions
 
+The use of the B+-tree index structure has become a staple for efficient and organized file storage. While index-sequential file organization can be riddled with performance issues as the file grows, the B+-tree structure provides a solution to the degradation of index lookups and actual record storage. By utilizing the leaf level of the B+-tree as an organizer for records in a file, rather than just as an index, we can avoid the issue of storing pointers to records and instead store the records themselves.
+
+![Figure 166 - B+-tree ﬁle organization](166.png)
+
+Inserting and deleting records in a B+-tree file organization follows the same principles as in a B+-tree index. To insert a record with a given key value, the system locates the block that should contain the record by searching the B+-tree for the largest key that is less than or equal to the given value. If the block has enough free space, the record is stored in the block. Otherwise, the block is split and the records are redistributed to create space for the new record. Deleting a record works similarly, as the record is removed from its block and the non-leaf nodes of the B+-tree are updated.
+
+To improve space utilization in a B+-tree, we can involve more sibling nodes in redistribution during splits and merges. By redistributing entries between adjacent nodes during insertion or deletion, we can ensure that each node contains at least a certain number of entries. However, as more sibling nodes are involved in redistribution, the cost of updating becomes higher.
+
+It is important to note that in a B+-tree index or file organization, leaf nodes that are adjacent to each other in the tree may not be located adjacent to each other on disk. As such, sequential access to the file may become increasingly lost as insertions and deletions occur. In such cases, an index rebuild may be required to restore sequentiality.
+
+Finally, B+-tree file organizations can be used to store large objects, such as SQL clobs and blobs, which may be larger than a disk block. By splitting these objects into smaller records that are organized in a B+-tree file organization, we can efficiently store and access these large objects.
+
+As we delve into the world of indexing, we come across the B-Tree and the B+-Tree - two distinct data structures that serve a common purpose. The B-Tree stands out from its sibling in that it avoids the redundant storage of search-key values, a trait that could potentially reduce the number of nodes in an index.
+
+![Figure 167 - Procedure for computing join](167.png)
+
+As we scrutinize the Figure above, we notice that the B-Tree, unlike the B+-Tree, limits the number of times a search-key value appears. This constraint brings about the need for additional pointer fields in nonleaf nodes that point to file records or buckets associated with a search key.
+
+Despite the growing trend in using B-Tree and B+-Tree interchangeably, this book adheres to the conventional definition of the two data structures to prevent any confusion. A generalized B-Tree is presented in Figure below, with leaf nodes identical to that of the B+-Tree.
+
+![Figure 168 - Typical nodes of a B-tree. (a) Leaf node. (b) Nonleaf node](168.png)
+
+The number of nodes accessed during a lookup in a B-Tree varies based on the location of the search key. In contrast to the B+-Tree, a B-Tree could present the desired value before reaching a leaf node. Nevertheless, the advantages of finding certain values early on are insignificant, given that B-Tree's nonleaf nodes contain fewer search keys, leading to a smaller fanout and a greater depth than that of its cousin.
+
+Deleting entries in a B-Tree is more complicated than in a B+-Tree, given that the entry could appear in nonleaf nodes. On the other hand, inserting values in a B-Tree is a relatively simple process. However, when it comes to large indices, the space advantages of B-Trees are trivial, making B+-Tree the preferred choice for most database-system implementations.
+
+As we tread further into the world of indexing, it's worth noting that the rise of flash memory has revolutionized data storage, and its impact on the index structure is undeniable. With the B+-Tree index structure compatible with flash memory storage, faster access speeds are guaranteed, and lookup times are reduced to a mere microsecond, giving magnetic disk storage a run for its money.
+
 ### Multiple-Key Access
+
+The use of multiple indices is a strategy that can greatly improve query processing efficiency for certain types of queries. In particular, when queries involve multiple attributes, an index built on a composite search key can provide a significant advantage over the use of single-key indices.
+
+However, the effectiveness of this strategy can depend heavily on the specific query and data characteristics. In some cases, the use of multiple indices can result in a large number of pointers being scanned to produce a small result, leading to poor query performance. To address this issue, specialized index structures such as bitmap indices and R-trees have been developed to speed up the intersection and comparison operations involved in query processing.
+
+Another optimization technique is the use of covering indices, which store the values of some attributes along with the pointers to the record. This technique can allow certain queries to be answered using just the index, without accessing the actual records. While this technique can improve query processing efficiency, it also increases the size of the search key, leading to increased storage requirements.
+
+Overall, the use of multiple indices and specialized index structures represents a powerful tool in the arsenal of database system designers, but it must be applied judiciously and with careful consideration of the specific query and data characteristics involved.
 
 ### Static Hashing
 
+Hashing has emerged as a technique that provides a way of constructing indices and avoids accessing index structures or employing binary search, thereby reducing the number of input/output (I/O) operations. However, not all hash functions are created equal. To ensure an even distribution of records across buckets, an ideal hash function should distribute search keys uniformly across all buckets and appear random, regardless of any externally visible ordering on the search-key values.
+
+![Figure 169 - Hash organization of instructor ﬁle, with dept name as the key](169.png)
+
+To illustrate this point, consider the case of the instructor file, where the search key is the department name. If a simple hash function is employed, which maps names beginning with the ith letter of the alphabet to the ith bucket, the distribution will not be uniform due to the imbalance in the number of names beginning with certain letters.
+
+![Figure 170 - Overﬂow chaining in a hash structure](170.png)
+
+On the other hand, a hash function based on the search key salary, which divides the values into 10 ranges, provides a uniform distribution but is not random, as records with certain salaries are more common than others.
+
+Therefore, it is important to choose a hash function carefully, taking into account the specific characteristics of the search keys and the size of the file. Typical hash functions operate on the binary representation of characters in the search key and employ mathematical operations to ensure an even distribution of records across buckets. By selecting an appropriate hash function, file organization can be optimized, reducing the number of I/O operations required and improving overall system performance.
+
+![Figure 171 - Hash index on search key ID of instructor ﬁle](171.png)
+
 ### Dynamic Hashing
+
+The issue of fixed bucket addresses presents a grave challenge when utilizing the static hashing technique. Databases, as we know, tend to grow in size over time. This, however, poses a problem for static hashing, and when dealing with such databases, we have three possible options.
+
+Firstly, we may choose to base our hash function on the current size of the file. However, this option results in a loss of performance as the database continues to expand. Secondly, we can opt for a hash function based on the anticipated size of the file at some point in the future. Although this approach avoids a decline in performance, it may result in a substantial initial wastage of space.
+
+Lastly, we may periodically reorganize the hash structure to accommodate the growth of the database. This, however, is a massive and time-consuming operation, requiring the choice of a new hash function, the recomputation of the hash function on every record in the file, and the generation of new bucket assignments. Moreover, it is necessary to prevent access to the file during this reorganization process.
+
+Fortunately, several dynamic hashing techniques, including extendable hashing, allow for the hash function to be modified dynamically to cope with the growth or shrinkage of the database. With extendable hashing, we can split and coalesce buckets as the database expands or contracts, thus retaining space efficiency. The reorganization process in this case is performed on only one bucket at a time, ensuring that the resulting performance overhead is acceptably low.
+
+To achieve this, we select a hash function h that generates values over a relatively large range, typically b-bit binary integers, with b being 32 in most cases. Instead of creating a bucket for each hash value, we create buckets on demand, as records are inserted into the file. At any point, we use i bits, where 0 ≤ i ≤ b, to locate the correct bucket for a record.
+
+![Figure 172 - General extendable hash structure](172.png)
+
+The general extendable hash structure, as illustrated in the Figure above, shows the i bits required to determine the correct bucket for a given record. The integer associated with each bucket represents the length of the common hash prefix shared by all entries that point to that bucket.
+
+![Figure 173 - Hash function for dept name](173.png)
+
+To perform a lookup, insertion, or deletion on an extendable hash structure, the system takes the first i high-order bits of the hash value and follows the corresponding table entry for this bit string, thereby locating the bucket containing the search-key value. If the bucket is full, it must be split and the records redistributed. To determine whether it needs to increase the number of bits used, the system checks whether i is equal to ij.
+
+If i is equal to ij, only one entry in the bucket address table points to the bucket. In this case, the system increases the size of the bucket address table by considering an additional bit of the hash value, doubling the size of the table, and allocating a new bucket. It then rehashes each record in the original bucket and, depending on the first i bits, either keep it in the original bucket or assigns it to the newly created bucket.
+
+Extendable hashing offers an efficient and dynamic solution for databases that grow or shrink in size.
+
+In the pursuit of efficient data storage and retrieval, computer scientists have long been on the lookout for the most optimal hashing techniques. Among the contenders for the top spot is extendable hashing, a dynamic hashing technique that promises optimal performance without the typical space overhead associated with other hashing techniques.
+
+![Figure 174 - Initial extendable hash structure](174.png)
+
+![Figure 175 - Hash structure after three insertions](175.png)
+
+In a recent demonstration of the power of extendable hashing, the illustrious instructor file in Figure 176 was used as a test case to illustrate the operation of insertion. Utilizing the 32-bit hash values in Figure 177, and assuming an empty file as in Figure 178, records were inserted one by one, to showcase all the features of extendable hashing in a small structure.
+
+![Figure 176 - Hash structure after four insertions](176.png)
+
+![Figure 177 - Hash structure after six insertions](177.png)
+
+![Figure 178 - Hash structure after seven insertions](178.png)
+
+In the interest of simplicity, it was assumed that each bucket could hold only two records. The first two records were inserted without incident, but when the third record was introduced, it became evident that the bucket was already full.
+
+![Figure 179 - Hash structure after eleven insertions](179.png)
+
+![Figure 180 - Extendable hash structure for the instructor ﬁle](180.png)
+
+To accommodate the overflow, the number of bits used in the hash value was increased, and the bucket was split, with the new bucket holding records whose search key had a hash value beginning with 1. As the file grew, buckets continued to be allocated dynamically, without the need for any buckets to be reserved for future growth.
+
+While extendable hashing does involve an additional level of indirection in the lookup process, the advantages of its dynamic allocation and optimal performance make it a highly attractive technique for data storage and retrieval. Though it requires a more complex implementation than other hashing techniques, the bibliographical notes provide more detailed descriptions of extendable hashing and alternative dynamic hashing techniques, such as linear hashing, that avoid the extra level of indirection.
 
 ### Comparison of Ordered Indexing and Hashing
 
+The choice of file organization and indexing technique can make all the difference. Should one use ordered indexing or hashing? The answer is not so straightforward, as each technique has its advantages and disadvantages depending on the situation at hand.
+
+If a system's queries primarily involve searching for a specific value, a hashing scheme may be preferable. With hashing, the average lookup time is constant and independent of the size of the database. In contrast, an ordered-index lookup requires time proportional to the logarithm of the number of values in r for the given attribute. However, the worst-case lookup time for hashing is proportional to the number of values in r for the attribute, whereas the worst-case lookup time for ordered indexing is proportional to the logarithm of the number of values in r. Nevertheless, as worst-case scenarios are unlikely to occur with hashing, it remains the preferred method.
+
+On the other hand, if the queries involve a range of values, ordered-index techniques are preferable. When executing a range query with an ordered index, the system performs a lookup on the first value in the range, then follows the pointer chain in the index to read the next bucket in order until it reaches the end of the range. With hashing, it is difficult to determine the next bucket that must be examined, as a good hash function assigns values randomly to buckets. Thus, the values in the specified range are likely to be scattered across many or all of the buckets, necessitating the reading of all the buckets to find the required search keys.
+
+In general, the decision to use ordered indexing or hashing depends on several factors. The cost of periodic reorganization of the index or hash organization, the relative frequency of insertion and deletion, the desired optimization of average access time versus increasing worst-case access time, and the types of queries that users are likely to pose all come into play. Ultimately, the choice between these two techniques must be made based on the expected type of query. However, in cases where it is not known in advance whether range queries will be infrequent or not, it is usually best to choose ordered indexing, unless the database is temporary and no range queries will be performed.
+
 ### Bitmap Indices
+
+After delving into the depths of database indexing, we come across the specialized world of Bitmap Indices. These unique indices offer a streamlined approach to querying multiple keys within a given relation. While each bitmap index is built on a single key, the sequential numbering of records within the relation paves the way for efficient retrieval of information.
+
+To illustrate the usefulness of bitmap indices, let us consider a relation with an attribute that can only take on a small number of values. A prime example of this would be the attribute "gender" in a relation containing instructor information. In such a scenario, creating a bitmap index for each possible value of the attribute allows for quick identification of the relevant records.
+
+![Figure 181 - Bitmap indices on relation instructor info](181.png)
+
+But the true power of bitmap indices shines through when there are selections on multiple keys. By creating bitmap indices on multiple attributes, we can perform queries that require satisfying multiple conditions. The intersection of the resulting bitmaps provides the necessary information for the query, enabling us to bypass access to the entire relation.
+
+In addition to their query prowess, bitmap indices also offer a space-saving advantage. With each bitmap consisting of a mere array of bits, the size occupied by bitmap indices is typically less than 1% of the relation size. And when an attribute can only take on a limited number of values, the bitmap index size shrinks even further, occupying a measly 1% of the relation size.
+
+The flexibility and efficiency of bitmap indices make them a valuable tool for data analysis. By leveraging their unique structure, we can retrieve information and count the number of tuples satisfying a given selection, all without even accessing the relation. So the next time you find yourself knee-deep in database indexing, consider the power of bitmap indices to streamline your queries and simplify your data analysis.
 
 ### Index Deﬁnition in SQL
 
+The SQL standard offers no provisions for the user or administrator to regulate the creation and maintenance of indices in the database system. While indices are not essential for data accuracy, they play a pivotal role in efficient transaction processing, including updates and queries. Moreover, indices facilitate the enforcement of integrity constraints.
+
+In theory, a database system could automate the process of determining which indices to create. However, due to the spatial costs associated with indices and their impact on update processing, it is challenging to automatically make the right choices. As a result, most SQL implementations provide programmers with control over index creation and deletion via data definition language (DDL) commands.
+
+The syntax of these commands is illustrated next. While widely used and supported by various database systems, it is not part of the SQL standard. The SQL standard restricts itself to the logical database schema and does not support the physical database schema's management.
+
+Creating an index requires the "create index" command with the following form: "create index  on  ()". The attribute list consists of the attributes of the relations that constitute the search key for the index.
+
+To create an index named "dept index" on the instructor relation with "dept name" as the search key, we would write "create index dept index on the instructor (dept name)". If we wish to declare that the search key is a candidate key, we add the attribute "unique" to the index definition. The command "create unique index dept index on the instructor (dept name)" would indicate that "dept name" is a candidate key for "instructor." However, it is unlikely that this is what we would want for our university database. If "dept name" is not a candidate key at the time of the "create unique index" command, the system will display an error message, and the index creation attempt will fail. If the index-creation attempt succeeds, any subsequent attempt to insert a tuple that violates the key declaration will fail. It is worth noting that the "unique" feature is redundant if the database system supports the unique declaration of the SQL standard.
+
+Some database systems allow the specification of the type of index to be used, such as B+-tree or hashing. Additionally, certain database systems permit one of the indices on a relation to be declared as "clustered." The system then stores the relation sorted by the search-key of the clustered index.
+
+Finally, to drop an index, the "drop index" command takes the form "drop index ." The index name we specified when creating the index is required for this command.
+
 ## Query Processing
+
+The intricate process of extracting data from a database, known as query processing, involves a multitude of activities. Among these activities are the translation of high-level database language queries into expressions that can be utilized at the physical level of the file system, a myriad of query-optimizing transformations, and ultimately, the evaluation of queries. The complex and dynamic nature of query processing necessitates a careful and deliberate approach, requiring a thorough understanding of the underlying database architecture and the nuances of query optimization.
 
 ### Overview
 
+The process of query processing is a complex and intricate task, involving several steps that culminate in the retrieval of data from a database. These steps are illustrated in the Figure and include parsing and translation, optimization, and evaluation. Before the commencement of query processing, the system must first convert the query into a format that is suitable for internal use. While SQL is well-suited for human consumption, it is unsuitable as an internal representation of a query. Therefore, a more useful format is one based on extended relational algebra.
+
+![Figure 182 - Steps in query processing](182.png)
+
+The initial step in query processing is the translation of the query into its internal format, a process akin to that performed by a compiler's parser. During the translation process, the parser checks the syntax of the query, confirms that the relation names referenced in the query are indeed present in the database, and so on. The result of this process is a parse-tree representation of the query, which is subsequently converted into a relational-algebra expression. If the query is defined in terms of a view, the translation phase replaces all references to the view with the relational-algebra expression that defines the view.
+
+![Figure 183 - Example](183.png)
+
+While a query can be expressed in various ways, there are typically multiple methods for computing the answer. The relational-algebra representation of a query partially specifies how the query is evaluated, but several different algorithms can be used to evaluate the expression. The process of fully specifying how to evaluate a query involves not only providing the relational-algebra expression but also annotating it with instructions on how to evaluate each operation, a process known as query optimization. A sequence of primitive operations that can be used to evaluate a query is a query-execution plan or query-evaluation plan.
+
+Different evaluation plans for the same query can have different costs, and it is the responsibility of the system to construct a query-evaluation plan that minimizes the cost of query evaluation. This task, known as query optimization, is discussed in detail in Chapter 13. Once the query plan is chosen, the query is evaluated, and the result of the query is output.
+
+![Figure 184 - A query-evaluation plan](184.png)
+
+Although the precise sequence of steps involved in query processing can vary among databases, the concepts described here form the foundation of query processing in databases. To optimize a query, the query optimizer must have knowledge of the cost of each operation. While it is difficult to compute the exact cost, it is possible to estimate the execution cost for each operation. In this chapter, we delve into how individual operations are evaluated in a query plan and how their costs can be estimated. Additionally, we explore how pipelined operations can be used to coordinate the execution of multiple operations and avoid the writing of intermediate results to disk.
+
 ### Measures of Query Cost
+
+Optimizing query evaluation plans in a database system is a crucial task that involves comparing and choosing among several alternatives based on their estimated costs. To estimate the cost of an evaluation plan, it is necessary to first estimate the cost of individual operations and then combine them to get the total cost of the plan.
+
+The cost of query evaluation is measured in terms of various resources such as disk accesses, CPU time, and communication costs in a distributed system. However, in large databases, the cost of accessing data from disk is usually the most significant as disk accesses are inherently slower than in-memory operations. Therefore, disk activity is expected to dominate the total query execution time, and the number of block transfers and disk seeks are used to estimate the cost of a query evaluation plan.
+
+To further refine the cost estimates, it is necessary to distinguish between block reads and writes as the latter are typically twice as expensive as reads. Nevertheless, such details are often ignored for simplicity, and buffer size in main memory is used to estimate the cost of various algorithms. In the best case, all data can be read into buffers, and the disk is not accessed again. However, in the worst case, only a few blocks of data can be stored in the buffer, and the cost estimates are based on such pessimistic assumptions.
+
+In addition, the response time for a query evaluation plan is a critical measure of its cost. Unfortunately, estimating response time is challenging as it depends on multiple factors such as the contents of the buffer when the query begins execution and the distribution of accesses among multiple disks. As a result, rather than minimizing response time, optimizers focus on minimizing the total resource consumption of the query plan.
+
+Estimating the cost of query evaluation plans involves considering various factors such as disk accesses, CPU time, and communication costs. Although the response time is an essential measure of cost, estimating it is challenging, and optimizers instead focus on minimizing total resource consumption.
 
 ### Selection Operation
 
+The file scan reigns supreme as the most fundamental operator for accessing data. It functions as a search algorithm that relentlessly seeks out and retrieves records that meet the conditions specified in a selection. In the case of relational systems, the file scan allows for the entire relation to be read when it is stored in a single, dedicated file.
+
+When it comes to implementing a selection operation on a relation consisting of tuples stored together in one file, there are various algorithms to consider. The linear search algorithm, for instance, entails scanning each file block and testing all records for compatibility with the selection condition. Although it may not be the speediest method of implementing a selection, the linear search algorithm can be applied to any file, regardless of the ordering of the file, the availability of indices, or the nature of the selection operation.
+
+On the other hand, other selection algorithms that exist tend to be faster than linear search but are not universally applicable. Among these algorithms, some use index structures, which are referred to as access paths. Such structures provide a pathway through which data can be located and accessed, with the selection predicate guiding the choice of the index used in processing the query.
+
+For instance, a primary index (also known as a clustering index) is an index that allows the records of a file to be read in an order that corresponds to the physical order in the file. When an equality comparison on a key attribute with a primary index is made, the index can be used to retrieve a single record that satisfies the corresponding equality condition. Cost estimates are shown in the Figure below:
+
+![Figure 185 - Cost estimates for selection algorithms](185.png)
+
+Additionally, there are cases where multiple records may need to be fetched, such as when a primary index is used to retrieve multiple records if the selection condition specifies an equality comparison on a non-key attribute. In such instances, the records must be stored consecutively in the file since the file is sorted on the search key.
+
+Selections specifying an equality condition can also use a secondary index. If the equality condition is on a key, this strategy can retrieve a single record. However, if the indexing field is not a key, multiple records may be retrieved. In this second case, each record may be resident on a different block, which could result in one I/O operation per retrieved record, with each I/O operation requiring a seek and a block transfer. The worst-case time cost, in this case, is dependent on several factors, and could even exceed that of linear search if a large number of records are retrieved.
+
+It is worth noting that when records are stored in a B+-tree file organization or other file organizations that may require relocation of records, secondary indices usually do not store pointers to the records. Instead, they store the values of the attributes used as the search key in a B+-tree file organization. Accessing a record through such a secondary index is more expensive, as it requires searching the secondary index to find the primary index search-key values, and then looking up the records in the primary index. Cost formulae described for secondary indices must be modified accordingly in such cases.
+
+Selection operations are a crucial aspect of query processing, and there are various algorithms and index structures available to streamline and optimize the selection process. From the straightforward linear search to the more complex primary and secondary index searches, each algorithm has its strengths and limitations, and their respective costs must be carefully considered in determining the most efficient approach.
+
 ### Sorting
+
+Sorting data in database systems is a crucial task with multiple benefits. First, it enables SQL queries to specify the output to be sorted. Second, sorting helps enhance the efficiency of relational operations such as joins when the input relations are sorted. Therefore, sorting is a fundamental step that precedes the discussion of join operations.
+
+![Figure 186 - Example](186.png)
+
+While building an index on the sort key can sort a relation, it orders the relation logically through an index rather than physically. This process can lead to disk access for each record, making it very expensive. Hence, it may be preferable to sort records physically.
+
+Sorting has been studied extensively for relations that are bigger than memory. The most commonly used technique for external sorting is the external sort–merge algorithm. This technique involves creating sorted runs with each run sorted but containing only some of the records of the relation. Then, the runs are merged, and the output is the sorted relation. The merge stage operates by reading one block of each file into a buffer block in memory and then choosing the first tuple (in sort order) among all buffer blocks. The output of the merge stage is a generalization of the two-way merge used by the standard in-memory sort–merge algorithm, but it merges N runs, so it is called an N-way merge.
+
+![Figure 187 - External sorting using sort–merge](187.png)
+
+If the relation is much larger than memory, there may be M or more runs generated in the first stage, and it is not possible to allocate a block for each run during the merge stage. In this case, the merge operation proceeds in multiple passes. Each pass reduces the number of runs by a factor of M − 1, and the passes repeat as many times as required until the number of runs is less than M. Finally, a final pass generates the sorted output.
+
+![Figure 188 - Formula](188.png)
+
+The cost analysis of external sort–merge is calculated using the number of blocks containing records of relation r, with the total number of block transfers for external sorting of the relation being given by a specific formula. By understanding the sorting of data and the external sort–merge algorithm, one can enhance the efficiency of database systems and facilitate more efficient querying and sorting of data.
+
+![Figure 189 - Formula](189.png)
 
 ### Join Operation
 
+Join operations are a fundamental task in database management systems, allowing us to combine information from different relations based on some common attributes. In this regard, several algorithms have been proposed to efficiently compute the join of relations.
+
+One of the most basic algorithms is the nested-loop join, which essentially consists of a pair of nested for loops. However, this algorithm is not very efficient, as it examines every pair of tuples in the two relations, resulting in a high computational cost.
+
+To address this issue, the block nested-loop join algorithm was proposed, which processes the relations on a per-block basis rather than on a per-tuple basis. This variant pairs every block of the inner relation with every block of the outer relation and generates all possible pairs of tuples, satisfying the join condition.
+
+![Figure 190 - Block nested-loop join](190.png)
+
+The block nested-loop join algorithm provides a significant saving in block accesses, as each block in the inner relation is read only once for each block in the outer relation, instead of once for each tuple in the outer relation. Furthermore, the cost of this algorithm can be further optimized by using the smaller relation as the inner relation.
+
+Overall, these algorithms enable us to perform efficient join operations on large-scale relational databases, providing a powerful tool for data analysis and decision-making.
+
+The merge-join algorithm stands tall as a formidable tool for computing natural and equi-joins. Boasting a structure, not unlike the merge stage of the merge-sort algorithm, merge-join offers a quick and efficient means of joining two relations, r(R) and s(S), sorted on their shared attributes R ∩ S.
+
+Central to the merge-join algorithm is the use of pointers that move through the relations as groups of tuples with identical values on the join attributes are read into sets Ss. If each set fits into the main memory, the algorithm proceeds apace; otherwise, the algorithm will perform a block nested-loop join, matching the larger sets with corresponding blocks of tuples in r with the same join attribute values.
+
+![Figure 191 - Merge join](191.png)
+
+Once the input relations have been sorted, tuples with identical join attribute values are in consecutive order, resulting in each tuple being read only once. Consequently, with just one pass through each file, the merge-join algorithm proves to be an economical choice. Assuming that multiple buffer blocks are allocated to each relation, the cost of disk seeks is kept relatively low compared to data transfer.
+
+![Figure 192 - Sorted relations for merge join](192.png)
+
+Despite its many advantages, merge-join does have its limitations. Should either of the input relations r and s not be sorted on the join attributes, sorting must be done before the algorithm can be used, adding to the overall cost of computation. Additionally, if some sets of Ss are too large to fit into memory, the algorithm's efficiency may take a hit.
+
+![Figure 193 - Hash partitioning of relations](193.png)
+
+All in all, the merge-join algorithm remains a powerful tool in the database management arsenal, capable of handling natural and equi-joins with ease, provided the relations are sorted and the memory is allocated correctly.
+
+The hash-join algorithm is a powerful technique that facilitates the computation of natural joins of relations r and s. It operates by utilizing a hash function to determine if an r tuple and an s tuple satisfy the join condition. If their values for the join attributes are the same, the r tuple can be found in the partition corresponding to the hash value of the join attribute, while the s tuple can be found in the same partition of the s relation. This avoids the need to compare r tuples with s tuples in any other partition, thereby enhancing the efficiency of the join operation.
+
+![Figure 194 - Hash join](194.png)
+
+The hash-join algorithm involves building a hash index on each partition of the s relation in memory, and then probing it with tuples from the corresponding partition of the r relation. This process requires only a single pass through both inputs, making it highly efficient. However, if the number of partitions is greater than the number of available buffer blocks, recursive partitioning is required to split the input into smaller partitions.
+
+Furthermore, the hash-table overflow may occur due to the hash index being larger than the main memory. In such cases, the fudge factor is used to increase the number of partitions and reduce the size of each partition to handle the skewness. Overall, the hash-join algorithm is a powerful tool for computing natural joins efficiently and effectively.
+
+Complex joins present a unique challenge. While nested-loop and block nested-loop joins can be applied regardless of join conditions, the more efficient techniques are limited to simple conditions such as natural and equi-joins. However, there is a way to implement joins with complex conditions such as conjunctions and disjunctions by utilizing the techniques developed for handling complex selections.
+
+![Figure 195 - Example](195.png)
+
+To illustrate this point, let us consider a join with a conjunctive condition. By applying one of the simpler joins on the individual conditions, we can generate an intermediate result consisting of tuples from both tables. The final join can then be obtained by testing the remaining conditions on this intermediate result.
+
+![Figure 196 - Example](196.png)
+
+![Figure 197 - Example](197.png)
+
+![Figure 198 - Example](198.png)
+
+A disjunctive join can be computed similarly, as the union of the records in individual joins. With this technique, complex joins need not be an insurmountable challenge, but rather a task that can be effectively managed with the proper tools and strategies.
+
 ### Other Operations
 
+Several fundamental operations play a pivotal role in querying data. Along with the classic selection and join operations, relational databases also offer a handful of other operations that enable users to manipulate their data in novel ways.
+
+One such operation is the elimination of duplicate records. This operation can be efficiently performed through the use of sorting or hashing techniques. While sorting allows for duplicates to be detected and removed as adjacent copies, hashing partitions the relation and constructs an in-memory hash index that can be used to remove any existing duplicates.
+
+Projection is another powerful operation that allows for the selection of certain attributes from a relation. When applied, projection can produce a relation with duplicate tuples, which can be efficiently removed using the techniques discussed above.
+
+Set operations such as union, intersection, and the set difference can be implemented through sorting or hashing as well. When sorting is used, both input relations are sorted and scanned only once to produce the desired result. When hashing is used, the two input relations are partitioned by a common hash function, and the respective partitions are then processed based on the desired operation.
+
+Finally, outer join operations, which were previously introduced in section 4.1.2, can be implemented through two different strategies. One strategy is to compute the corresponding join and add further tuples to the result to get the outer join result. The other strategy is to use the techniques discussed earlier to compute the left outer join of two input relations, r, and s.
+
+These operations are critical to the functionality of a relational database system, and their efficient implementation is key to the performance of such systems.
+
 ### Evaluation of Expressions
+
+In this piece, we delve into the intricacies of evaluating expressions in the field of database systems. After exploring individual relational operations, we turn our attention to expressions containing multiple operations and the most effective ways to evaluate them.
+
+One approach to evaluating an expression is to execute one operation at a time, in a logical order, and store each intermediate result in a temporary relation for later use. However, this method is not without its drawbacks, particularly when dealing with large data sets that require the creation of sizable temporary relations that must be written to disk.
+
+![Figure 199 - Pictorial representation of an expression](199.png)
+
+A more efficient alternative is pipelining, whereby multiple operations are executed simultaneously and the results of each operation are passed directly to the next, without the need for storing intermediate results. This approach is particularly useful when dealing with queries that generate results that need to be displayed in real-time, allowing users to receive query results as they are generated.
+
+However, while pipelining can be a more efficient evaluation method, it is not always feasible, and in some cases, materialization is the only viable option. In addition, it is important to consider the cost of each approach when evaluating expressions, which can differ depending on the specific operations involved.
+
+![Figure 200 - Double-pipelined join algorithm](200.png)
+
+To implement a pipeline, a single complex operation can be constructed that combines the operations involved in the pipeline. However, it is often more desirable to reuse the code for individual operations to create a pipeline.
+
+The evaluation of expressions in database systems is a complex and multi-faceted process that requires careful consideration of the specific operations involved, as well as the most efficient evaluation methods available.
 
 ## Query Optimization
 
