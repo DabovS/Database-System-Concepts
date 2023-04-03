@@ -3372,17 +3372,126 @@ The evaluation of expressions in database systems is a complex and multi-faceted
 
 ## Query Optimization
 
+Query optimization is a critical task in the realm of database management, and it involves selecting the most efficient approach for processing complex queries. It is not expected that users will write their queries in a manner that is optimized for processing efficiency. Rather, the system is tasked with the responsibility of devising a query evaluation plan that minimizes the cost of query evaluation. This is where the intricate art of query optimization comes into play.
+
+Optimization occurs at various levels, including the relational-algebra level, where the system endeavors to identify an expression that is equivalent to the given expression but more efficient to execute. Another level of optimization involves selecting a detailed strategy for processing the query, such as choosing the algorithm to use for executing an operation or determining the specific indices to use.
+
+The difference in evaluation time between a good and a bad strategy can be staggering, often spanning several orders of magnitude. Therefore, it is worth investing a considerable amount of time in the selection of a suitable strategy for processing a query, even if it is executed only once. The importance of query optimization cannot be overstated, as it ultimately leads to enhanced performance and productivity in database management.
+
 ### Overview
+
+In the complex world of database systems, query optimization is a key component of efficient data retrieval. The process involves generating alternative query-evaluation plans and selecting the least-costly one to produce the same result as the original expression. The query optimizer achieves this by applying logical equivalence rules to generate equivalent expressions and then annotating these expressions in alternative ways to generate various evaluation plans.
+
+To estimate the cost of each plan, the optimizer leverages statistical information about the relations, such as relation sizes and index depths, and uses this data to estimate the costs of individual operations. These costs are combined to determine the estimated cost of evaluating a given relational algebra expression.
+
+Moreover, materialized views are utilized to speed up the processing of certain queries. Maintaining these views and performing query optimization with them is a separate challenge altogether.
+
+While the best way to view the evaluation plan for a given query is through the GUI provided by the database system, command line interfaces offer variations of a command that display the execution plan chosen for a specified query. These commands vary by database, but all display the estimated costs along with the plan.
+
+In short, query optimization is a vital aspect of database systems that requires a deep understanding of equivalence rules, statistics, and materialized views. Through the use of evaluation plans and estimated costs, the query optimizer seeks to reduce the time and resources required for data retrieval and ensure optimal performance of the system.
 
 ### Transformation of Relational Expressions
 
+As we delve deeper into the world of database querying, we find ourselves exploring the concept of relational expression transformation. This involves the consideration of alternative expressions that generate the same set of tuples as the original relational expression on every legal database instance, albeit with varying evaluation costs. Such alternative expressions are said to be equivalent.
+
+Equivalence rules serve as a guide for the transformation of relational-algebra expressions into other logically equivalent expressions. These rules can be used to replace an expression of the first form with an expression of the second form or vice versa. As a result, the optimizer is better equipped to transform expressions into more optimized, efficient, and logically equivalent ones.
+
+![Figure 230 - Multiple transformations](230.png)
+
+Among the many general equivalence rules governing relational-algebra expressions, the conjunctive selection operation can be deconstructed into a sequence of individual selections, and selection operations are commutative. Furthermore, only the final operations in a sequence of projection operations are needed. Selections can be combined with Cartesian products and theta joins, which are commutative, associative, and important for join reordering in query optimization.
+
+The selection operation distributes over the theta-join operation under certain conditions, and the projection operation distributes over the theta-join operation under other conditions. Set union and intersection are commutative and associative, while the set difference is not commutative. Additionally, the selection operation distributes over the union, intersection, and set-difference operations.
+
+![Figure 241 - EProcedure to generate all equivalent expressionsxample](241.png)
+
+As we embark on this journey of database querying and the transformation of relational expressions, let us remember that the end goal is not only to generate the same set of tuples but to do so efficiently, logically, and with precision.
+
 ### Estimating Statistics of Expression Results
+
+In this section, we delve into the intricate details of estimating statistics for database relations. The aim is to provide a framework for estimating the cost of operations based on their input size and other pertinent information. Our focus lies in exploring the statistical information maintained in database catalogs, and how this information can be harnessed to provide cost estimates for a range of relational operations.
+
+We begin by examining the statistical information stored in database catalogs, which includes the number of tuples and blocks in a relation, the size of a tuple, the blocking factor of a relation, and the number of distinct values that appear in a relation for a particular attribute. This last statistic is particularly useful, as it is the same as the size of the attribute's domain in the relation. We also note that statistics about indices, such as the height of B+-tree indices and the number of leaf pages in the indices, are also maintained in the catalog.
+
+However, it is important to bear in mind that the estimates we derive from these statistics are not always precise, as they rely on certain assumptions that may not hold in reality. As a result, the lowest estimated execution cost may not necessarily equate to the lowest actual execution cost. Nevertheless, real-world experience has shown that the plans with the lowest estimated costs are often either the lowest actual execution costs or close to them.
+
+To maintain accurate statistics, it is necessary to update them every time a relation is modified. However, updating the statistics incurs a significant amount of overhead, which is why most systems only update statistics during periods of light system load. Consequently, the statistics used to choose a query-processing strategy may not be completely accurate, although they are often sufficient to provide good estimates of the relative costs of different plans.
+
+Furthermore, in addition to the simplified statistical information outlined above, real-world optimizers often maintain further statistical information, such as histograms of attribute distributions, to improve the accuracy of cost estimates for evaluation plans. These histograms divide the values for an attribute into a number of ranges, and for each range, associate the number of tuples whose attribute value falls within that range, as well as the number of distinct attribute values in that range.
+
+This section highlights the importance of maintaining accurate statistical information in database catalogs to enable cost estimates for relational operations. The estimation process is not without its challenges, particularly due to the assumptions involved. Nevertheless, the use of statistical information is essential for achieving efficient query-processing strategies in real-world database systems.
+
+We delve into the intricate details of estimating statistics for database relations. The aim is to provide a framework for estimating the cost of operations based on their input size and other pertinent information. Our focus lies in exploring the statistical information maintained in database catalogs, and how this information can be harnessed to provide cost estimates for a range of relational operations.
+
+We begin by examining the statistical information stored in database catalogs, which includes the number of tuples and blocks in a relation, the size of a tuple, the blocking factor of a relation, and the number of distinct values that appear in a relation for a particular attribute. This last statistic is particularly useful, as it is the same as the size of the attribute's domain in the relation. We also note that statistics about indices, such as the height of B+-tree indices and the number of leaf pages in the indices, are also maintained in the catalog.
+
+However, it is important to bear in mind that the estimates we derive from these statistics are not always precise, as they rely on certain assumptions that may not hold in reality. As a result, the lowest estimated execution cost may not necessarily equate to the lowest actual execution cost. Nevertheless, real-world experience has shown that the plans with the lowest estimated costs are often either the lowest actual execution costs or close to them.
+
+To maintain accurate statistics, it is necessary to update them every time a relation is modified. However, updating the statistics incurs a significant amount of overhead, which is why most systems only update statistics during periods of light system load. Consequently, the statistics used to choose a query-processing strategy may not be completely accurate, although they are often sufficient to provide good estimates of the relative costs of different plans.
+
+Furthermore, in addition to the simplified statistical information outlined above, real-world optimizers often maintain further statistical information, such as histograms of attribute distributions, to improve the accuracy of cost estimates for evaluation plans. These histograms divide the values for an attribute into a number of ranges, and for each range, associate the number of tuples whose attribute value falls within that range, as well as the number of distinct attribute values in that range.
+
+The estimation process is not without its challenges, particularly due to the assumptions involved. Nevertheless, the use of statistical information is essential for achieving efficient query-processing strategies in real-world database systems.
 
 ### Choice of Evaluation Plans
 
+In the world of database optimization, the choice of evaluation plans is crucial in determining the best algorithm for each operation and coordinating the execution of those operations. With statistics estimated by various techniques, cost-based optimizers explore the space of query-evaluation plans equivalent to a given query and choose the one with the least estimated cost. However, when dealing with complex queries, generating all equivalent plans may be too expensive, leading to the use of heuristics that reduce optimization costs, albeit at the risk of not finding the optimal plan.
+
+In SQL queries involving joins of a few relations, the optimal join order selection problem arises. For instance, given a join query, the number of different query plans that are equivalent to the query can be quite large, with the number of join orders rising quickly as the number of relations increases. Yet, by using dynamic-programming algorithms, we can store the results of computations and reuse them, reducing execution time significantly.
+
+![Figure 256 - Dynamic-programming algorithm for join order optimization](256.png)
+
+Such a dynamic-programming algorithm for finding optimal join orders is recursive, applying selections on individual relations at the earliest possible point, and taking into account all join conditions that relate attributes from the two subexpressions. The algorithm works by checking if the best plan for computing the join of a given set of relations has already been computed, then recording the best way of accessing a relation (taking selections into account) or trying every way of dividing a set into two disjoint subsets, recursively finding the best plans for each of the two subsets and computing the cost of the overall plan by combining the two. The use of associative arrays to store the evaluation plans computed by the algorithm makes the entire process more efficient and less time-consuming.
+
+The optimization of query evaluation plans can be a daunting and computationally intensive task. The cost-based optimization approach, while effective, can suffer from the drawback of excessive computational costs. To mitigate this issue, heuristic rules can be employed to reduce the cost of optimization. However, the use of such heuristics can lead to suboptimal query evaluation plans, which may be more costly than optimal plans.
+
+To address this issue, a general-purpose cost-based optimizer based on equivalence rules has been proposed. This optimizer leverages the power of physical equivalence rules to generate all possible evaluation plans while utilizing cost estimation techniques to select the optimal plan. However, the efficiency of this approach depends on several factors, including space-efficient expression representation, dynamic programming with memoization, and techniques that avoid generating all possible equivalent plans.
+
+Despite the strengths of this approach, it remains complex and computationally intensive. To address this issue, heuristic rules are commonly employed in optimization. These rules can help to reduce the cost of query evaluation plans by performing selection and projection operations early in the process. While effective in many cases, the use of heuristic rules can lead to suboptimal query evaluation plans, and further heuristics are often employed to optimize the optimization process.
+
+![Figure 257 - Left-deep join trees](257.png)
+
+While cost-based optimization and heuristic rules have proved effective in many cases, the pursuit of optimal query evaluation plans continues to be a fascinating and elusive challenge for researchers and practitioners alike.
+
+Optimizing nested subqueries in SQL can be a tricky task. SQL treats nested subqueries as functions that take parameters and return either a single value or a set of values. These parameters are the variables from an outer-level query that are used in the nested subquery, and they are known as correlation variables. The goal is to find an efficient way to evaluate a query with nested subqueries, since correlated evaluation, which evaluates the subquery for each tuple in the outer-level query, can result in a large number of random disk I/O operations.
+
+SQL optimizers try to transform nested subqueries into joins where possible. Join algorithms help avoid expensive random I/O, which makes them a more efficient option. However, if the transformation isn't possible, the optimizer keeps the subqueries as separate expressions, optimizes them separately, and then evaluates them through correlated evaluation.
+
+Transforming a nested subquery into a join isn't always straightforward. In some cases, creating a temporary relation that contains the results of the nested query and joining it with the outer-level query is necessary. The process of replacing a nested query with a join (possibly with a temporary relation) is called decorrelation.
+
+Optimizing complex nested subqueries is a difficult task. While many optimizers do a limited amount of decorrelation, it is best to avoid using complex nested subqueries where possible. We cannot be sure that the query optimizer will succeed in converting them to a form that can be evaluated efficiently.
+
 ### Materialized Views**
 
+Materialized views are a boon to databases, allowing for improved performance in certain applications. Whereas traditional views only store the query defining the view, materialized views go a step further, computing and storing the contents of the view. While this constitutes redundant data, the cost savings from reading a materialized view as opposed to computing the view using its query definition can be significant.
+
+For example, a view providing the total salary for each department may require reading every instructor tuple pertaining to a department and summing the salary amounts, which can be a time-consuming process. However, if the view definition of the total salary amount was materialized, the total salary amount could be found by looking up a single tuple in the materialized view.
+
+However, maintaining materialized views presents a challenge. Whenever the data used in a view definition changes, the materialized view must be kept up-to-date, a task known as view maintenance. While manual code updates can be used to maintain materialized views, this approach is error-prone and can lead to inconsistencies.
+
+A better option for maintaining materialized views is to define triggers on insert, deleting, and update of each relation in the view definition. These triggers can modify the contents of the materialized view to reflect changes in the underlying data. Incremental view maintenance, whereby only affected portions of a materialized view are modified, is another option that modern database systems support.
+
+The changes (inserts and deletes) to a relation or expression that can cause a materialized view to becoming out-of-date are referred to as its differential. The incremental maintenance of materialized views can be achieved through simple operations. For instance, to update a materialized view based on a join operation, we simply need to add the tuples that have been inserted into the old contents of the view.
+
+Materialized views can significantly improve database performance, but maintaining their consistency is a challenge. With the support of modern database systems, however, it is possible to perform incremental maintenance of materialized views through simple operations.
+The incremental maintenance of materialized views is a topic of great importance. Similar to projection operations, aggregation operations in SQL utilize count, sum, avg, min, and max to compute information from materialized views. However, the process of updating these aggregates on insertion or deletion of tuples is not always straightforward.
+
+In the case of the count, a materialized view v = AGcount(B)(r) is created to compute the count of attribute B after grouping r by attribute A. On insertion, the system looks for the group t. A in the materialized view; if it is not present, a new entry (t.A, 1) is added. If the group already exists, the count for the group is incremented. Conversely, on deletion, the count for the group is decremented, and if it becomes zero, the tuple for group t.A is removed from the materialized view.
+
+Handling sum aggregates requires an extra count value to distinguish between a group sum of zero and the case where the last tuple in a group is deleted. Similarly, computing the average requires the maintenance of sum and count aggregates, which are used to compute the average as the sum divided by the count.
+
+Materialized views also enable the optimization of query operations, either by rewriting queries to utilize the view or by replacing the view with its definition. The implementation of these techniques can provide significant performance gains for database systems.
+
 ### Advanced Topics in Query Optimization**
+
+In the realm of database management systems, there exist a myriad of opportunities for optimizing queries beyond the rudimentary techniques we have thus far explored. Let us delve into a few of these advanced optimization strategies.
+
+First, let us examine the optimization of top-K queries. Often, queries retrieve results sorted according to certain attributes and require only the top K results. In some instances, the bound K is explicitly specified, while in others, the query may not mention the limit, but the optimizer can be signaled to retrieve only the top K results. When K is small, a query plan that generates the entire set of results before sorting and selecting the top K is highly inefficient, discarding most of the intermediate results that it computes. Consequently, novel approaches to optimizing top-K queries have emerged. For instance, one strategy involves using pipelined plans that can generate the results in sorted order. Another technique involves estimating the highest value on the sorted attributes that will appear in the top-K output and introducing selection predicates to eliminate larger values. If too few or too many tuples are generated, the selection condition is modified, and the query re-executed.
+
+Next, we consider the optimization of join minimization, which arises when queries are generated through views. Occasionally, more relations are joined than needed for the computation of the query, leading to unnecessary computational overheads. In such cases, dropping a relation from a join is a typical example of join minimization. This technique can be performed in various situations, resulting in improved query performance.
+
+Another optimization strategy is updating queries, which are notorious for involving subqueries in the set and where clauses, which must be taken into account in optimizing the update. Where an updated tuple may be reinserted in the index ahead of the scan and seen again by the scan, causing erroneous updates. 
+
+Lastly, we delve into multi-query optimization and shared scans, where a query optimizer can potentially exploit common subexpressions between different queries, evaluating them once and reusing them where required. Complex queries may have subexpressions repeated in different parts of the query, which can be similarly exploited, reducing query evaluation costs. Such optimization is known as multi-query optimization and can even outperform common subexpression elimination in certain cases. A judiciously chosen set of query evaluation plans for a batch of queries may provide greater sharing and a lower cost than that offered by choosing the lowest cost evaluation plan for each query.
 
 # TRANSACTION MANAGEMENT
 
