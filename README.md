@@ -4489,7 +4489,7 @@ Indeed, as we peer into the intricacies of these systems, we are left with a sen
 
 Amidst the evolving landscape of modern organizations and networked communication, the directory systems of yore have found a new lease on life, bringing with them an unprecedented level of accessibility and organization to employee data. Once a physical listing of employee information, the directory system has now taken on a new form in the digital age, allowing for quick and efficient searches through a comprehensive online network.
 
-* ldap:://codex.cs.yale.edu/o=Yale University,c=USA 
+* ldap:://codex.cs.yale.edu/o=Yale University,c=USA
 * ldap:://codex.cs.yale.edu/o=Yale University,c=USA??sub?cn=Silberschatz
 
 These systems not only serve the needs of humans but also the programs that require access to the same information. While database systems are perfectly capable of storing the various types of employee data, directory access protocols simplify the process by catering to a specific type of access. Moreover, directory systems provide a simple yet effective way to name objects hierarchically, similar to file system directories, enabling a distributed directory system to specify the information stored in each of the directory servers. With this design, directory servers can automatically forward queries between different locations, providing users with greater autonomy and control.
