@@ -3495,125 +3495,1010 @@ Lastly, we delve into multi-query optimization and shared scans, where a query o
 
 # TRANSACTION MANAGEMENT
 
+In the realm of database management, the term "transaction" holds paramount importance. It is a collection of operations that form a cohesive unit of work, aimed at achieving a specific goal. Consider, for instance, a simple transfer of money from one account to another. This seemingly trivial task constitutes a transaction consisting of two updates, one to each account. However, the significance of a transaction lies in its atomicity - either all actions must be executed completely or, in the event of a failure, the partial effects of each incomplete transaction must be undone. Additionally, once a transaction is successfully executed, its effects must persist in the database - a system failure should not result in the database forgetting about a transaction that successfully completed. This property is referred to as durability.
+
+In a database system where multiple transactions are executing concurrently, the potential for transactions to see inconsistent intermediate states created by updates of other transactions looms large. Such a situation can result in erroneous updates to data stored in the database. Thus, database systems must provide mechanisms to isolate transactions from the effects of other concurrently executing transactions. This property is referred to as isolation.
+
+Taken as a whole, the transaction-management component of a database system allows application developers to focus on the implementation of individual transactions without worrying about the intricacies of concurrency and fault tolerance, thus ensuring the efficient and secure functioning of the database system.
+
 ## Transactions
+
+In the world of database management, it is often the case that multiple operations performed by users appear to be a single, cohesive unit. However, beneath the surface lies a collection of distinct operations that must be executed in proper order to maintain database integrity. For instance, when transferring funds from a checking account to a savings account, a user views this as a singular event, but within the database system, it consists of numerous individual operations that must be executed correctly to ensure consistency.
+
+Enter the concept of transactions. Transactions refer to a collection of operations that form a single logical unit of work. Ensuring the proper execution of transactions despite system failures is essential, as the execution must either take place in its entirety or not at all. The management of concurrent transaction execution is also critical, as it must be carried out in a way that prevents the introduction of inconsistency into the database.
+
+This chapter introduces the fundamental principles of transaction processing. While concurrent transaction processing and recovery from failures are discussed in greater detail, further topics in transaction processing are explored. It is through the proper handling of transactions that database integrity is maintained, allowing for a smooth and reliable user experience.
 
 ### Transaction Concept
 
+The concept of a transaction is fundamental to the proper functioning of modern database systems. In essence, a transaction is a unit of program execution that accesses and updates various data items, typically initiated by a user program written in a high-level data manipulation language. Transactions are defined by statements or function calls, that mark the beginning and end of the transaction.
+
+One of the key features of transactions is their atomicity. A transaction is indivisible, and either executes in its entirety or not at all. If a transaction fails for any reason, any changes it made to the database must be undone. This requirement is difficult to enforce, as changes may have been stored in main-memory variables or written to the database and stored on disk.
+
+In addition to atomicity, transactions must also adhere to the properties of consistency, isolation, and durability, often abbreviated as the ACID properties. Transactions must preserve database consistency, even for application-dependent consistency constraints that cannot be stated using SQL constructs. They must also operate in isolation, without interference from concurrently executing database statements. Finally, a transaction's actions must persist across crashes, ensuring durability.
+
+While the ACID properties are essential to the proper functioning of transactions, the isolation property in particular can have a significant adverse effect on system performance. As a result, some applications may compromise on the isolation property. Nonetheless, the enforcement of the ACID properties remains a critical concern for transaction processing in modern database systems.
+
 ### Simple Transaction Model
+
+In this piece, we explore the foundations of transactional databases and delve into the ACID properties that underpin their reliability and consistency. Starting with a simple transaction model, we examine how data moves between disk and memory, with a focus on read and write operations that access and update data items in the database. We illustrate these concepts through a basic bank application that involves the transfer of funds between accounts.
+
+To ensure the integrity of transactions, we explore each of the ACID properties in turn, beginning with Consistency, which demands that the sum of A and B remains unchanged throughout the execution of the transaction. Atomicity, on the other hand, requires that all actions of the transaction are either reflected in the database, or none are. To achieve this, the database system keeps track of the old values of any data that a transaction writes to, allowing for a full rollback in the event of a system failure.
+
+```Ti : read(A);
+        A:= A − 50; write(A); 
+        read(B);
+        B:=B+ 50; 
+        write(B).
+```
+
+Durability, meanwhile, ensures that once a transaction completes successfully, all updates it made to the database persist, even in the event of a system failure. We assume that data written to disk are never lost, but for protection against data loss in memory, we rely on backup and recovery systems.
+
+Throughout this exploration of transactional databases, we emphasize the importance of ensuring consistency, atomicity, and durability, and highlight the crucial role played by application programmers and database systems in guaranteeing the reliability and safety of these essential systems.
 
 ### Storage Structure
 
+To grasp the fundamental concepts of atomicity and durability in transactions, we must delve into the intricate world of storage structures. Chapter 10 has already shed light on the various types of storage media, such as volatile and nonvolatile storage, and their relative speeds, capacities, and resiliencies to failure. In addition, we introduce a new type of storage known as stable storage.
+
+Volatile storage refers to information that is typically lost in the event of system crashes. This includes memory and cache memory. Although access to volatile storage is speedy and direct, the loss of data during system crashes is a major drawback. Nonvolatile storage, on the other hand, is capable of surviving system crashes, but it tends to be slower than volatile storage, particularly for random access. Common examples of nonvolatile storage include secondary storage devices such as magnetic disks and flash storage, as well as tertiary storage devices such as optical media and magnetic tapes. However, both secondary and tertiary storage devices are also susceptible to failure, which can lead to data loss.
+
+Stable storage, the most desirable form of storage, ensures that data is never lost. However, the attainment of stable storage is not absolute, since a catastrophic event such as a black hole could potentially destroy all data. Nonetheless, techniques exist that can approximate stable storage by replicating information across multiple nonvolatile storage media, usually disks, with independent failure modes. Careful updates must be made to prevent information loss during the process of updating stable storage. While the distinctions among different storage types may not always be crystal clear, certain systems such as RAID controllers with battery backup can provide some main memory with protection against system crashes and power failures.
+
+To achieve transaction durability, it is necessary to write changes to stable storage. In addition, log records must be written to stable storage before any changes are made to the database on disk in order to ensure transaction atomicity. However, the level of durability and atomicity offered by a system depends largely on the stability of its stable storage implementation. While some applications may only require a single copy on disk, others with valuable data and important transactions may necessitate multiple copies or a closer approximation of the concept of stable storage.
+
 ### Transaction Atomicity and Durability
+
+In the world of database management, ensuring the atomicity and durability of transactions is paramount. A transaction that fails to complete successfully, or in other words, an aborted transaction, must have no impact on the state of the database. To achieve this, the changes made by an aborted transaction must be undone, a process commonly known as rolling back the transaction. The responsibility of managing transaction aborts usually falls on the recovery scheme, which maintains a log of all database modifications made by a transaction.
+
+A successful transaction has been committed, and once a transaction has been committed, it transforms the database into a new consistent state that must persist even in the event of a system failure. However, the effects of a committed transaction cannot be undone by aborting it, and the only recourse is to execute a compensating transaction. This responsibility, however, is left to the user, and the database system does not handle it.
+
+![Figure 262 - State diagram of a transaction](262.png)
+
+To ensure clarity in understanding what constitutes a successful transaction, a simple abstract transaction model has been established. This model defines a transaction as being in one of five states: active, partially committed, failed, aborted, and committed. A transaction starts in the active state, and after executing its final statement, enters the partially committed state.
+
+The database system then writes enough information to disk that even in the event of a failure, the updates made by the transaction can be re-created when the system restarts after the failure. Once the last of this information is written out, the transaction enters the committed state.
+
+In the event of a failure, a transaction enters the failed state and must be rolled back, after which it enters the aborted state. The system then has two options: it can restart the transaction or kill it.
+
+Dealing with observable external writes such as writes to a user's screen or sending emails requires caution, as such writes cannot be erased once they have occurred. Most systems allow such writes only after the transaction has entered the committed state. Handling external writes can be more complicated in certain situations, such as the dispensing of cash at an automated teller machine.
 
 ### Transaction Isolation
 
+In the realm of transaction-processing systems, the issue of consistency amidst concurrent execution is a tricky one. While serial execution of transactions can ensure consistency, allowing concurrency can greatly enhance system throughput and reduce waiting time. However, the execution of multiple transactions concurrently risks violating the isolation property and compromising the integrity of the database. In this regard, a system of schedules is presented to identify those executions that can ensure the isolation property and maintain database consistency.
+
+```T2: read(A);
+    temp := A *0.1; 
+    A := A − temp; 
+    write(A); 
+    read(B);
+    B := B + temp; 
+    write(B).
+```
+
+Concurrency-control schemes are employed by the database system to regulate the interaction between concurrent transactions and prevent any destruction of database consistency. As current trends in computing make it possible for an increasing number of transactions to run concurrently, it becomes more crucial for database systems to make use of multiple processors and cores to enhance overall system performance.
+
+![Figure 263 - Schedule 1—a serial schedule in which T1 is followed by T2](263.png)
+
+![Figure 264 - Schedule 2—a serial schedule in which T2 is followed by T1](264.png)
+
+To illustrate the concept of schedules and the effects of concurrent execution, we take a simplified banking system with several accounts and transactions that access and update those accounts. Consider two transactions, T1 and T2, that transfer funds from one account to another. 
+
+![Figure 265 - Schedule 3—a concurrent schedule equivalent to schedule 1](265.png)
+
+While executing multiple transactions concurrently can be beneficial, it's important to ensure the preservation of the sum of the amounts in the accounts involved. This can be achieved by employing the appropriate concurrency-control mechanisms and ensuring the execution of transactions that are guaranteed to maintain the isolation property.
+
+![Figure 266 - Schedule 4—a concurrent schedule resulting in an inconsistent state](266.png)
+
 ### Serializability
+
+In exploring the topic of serializability in database systems, we encounter the challenge of determining when a schedule is serializable, particularly when multiple transactions are interleaved. As transactions are essentially programs, it can be difficult to discern the precise operations that they perform and how these operations interact with those of other transactions. However, by considering only read and write instructions, we can simplify the analysis of schedules and focus on a particular form of schedule equivalence known as conflict serializability.
+
+![Figure 267 - Schedule 3—showing only the read and write instructions](267.png)
+
+![Figure 268 - Schedule 5—schedule 3 after swapping of a pair of instructions](268.png)
+
+To determine whether two consecutive instructions in a schedule conflict with one another, we must ascertain whether they are operations performed by different transactions on the same data item, with at least one of them being a write operation. Depending on the type of instructions involved, the relative order of execution may or may not matter. For instance, if both instructions are read operations, then their order is inconsequential. On the other hand, if one instruction is a read operation and the other is a write operation, the order of execution can significantly impact the final value of the data item in the database state.
+
+![Figure 269 - Schedule 6—a serial schedule that is equivalent to schedule 3](269.png)
+
+![Figure 270 - Schedule 7](270.png)
+
+To illustrate the concept of conflicting instructions, we analyze several schedules and demonstrate how we can transform them into equivalent schedules that are serializable. By swapping the order of non-conflicting instructions, we can create new schedules that preserve the same order of execution for all instructions except for the conflicting ones.
+
+![Figure 271 - Precedence graph for (a) schedule 1 and (b) schedule 2](271.png)
+
+Through this process, we can prove that a given schedule is equivalent to a serial schedule, indicating that it will produce the same final system state as a serial schedule would, regardless of the initial system state.
+
+![Figure 272 - Precedence graph for schedule 4](272.png)
+
+![Figure 273 - Illustration of topological sorting](273.png)
+
+![Figure 274 - Schedule 8](274.png)
+
+By focusing on conflict serializability and the order of read and write instructions in schedules, we can better understand how concurrency-control mechanisms can ensure serializability in database systems.
 
 ### Transaction Isolation and Atomicity
 
+In the realm of database systems, the issue of transaction failures during concurrent execution cannot be ignored. To ensure the atomicity property of a transaction, we must address the ramifications of such failures. Specifically, if a transaction fails, it is imperative to undo the effects of that transaction and abort any dependent transactions. This necessitates the placement of restrictions on the types of schedules that are permitted in a system.
+
+![Figure 275 - Schedule 9, a nonrecoverable schedule](275.png)
+
+One such restriction is that of recoverable schedules, where the commit operation of a transaction that has written data must appear before the commit operation of a transaction that reads that same data. If such a schedule is not adhered to, we may find ourselves in a situation where it is impossible to recover from a transaction failure.
+
+Even when a schedule is recoverable, we may still encounter the undesirable phenomenon of cascading rollback. This occurs when a single transaction failure necessitates the rollback of several transactions that have read data written by the failed transaction. To prevent such situations, we must strive for cascadeless schedules, where the commit operation of a transaction appears before any read operation of a transaction that has read data written by the first transaction.
+
+![Figure 276 - Schedule 10](276.png)
+
+By restricting schedules to only those that are both recoverable and cascadeless, we can minimize the risk of transaction failures and ensure the atomicity property of our transactions. Such restrictions may seem onerous at first, but the potential consequences of failing to adhere to them are too dire to ignore.
+
 ### Transaction Isolation Levels
+
+As we delve deeper into the world of databases, the concept of transaction isolation levels comes to the forefront. It is a crucial topic that demands the utmost attention of programmers and designers alike. Serializable execution is the gold standard, as it ensures that database consistency is maintained, even during concurrent transactions. However, implementing such strict protocols may hamper the performance of certain applications, rendering weaker levels of consistency a more viable option. This, in turn, puts an additional burden on programmers to ensure the correctness of the database.
+
+The SQL standard provides a transaction with the option to execute in a non-serializable fashion with respect to other transactions. This is achieved by setting the isolation level to "read uncommitted," which allows transactions to read uncommitted data items. This feature is beneficial for long transactions whose results do not require precision, and whose serializable execution might interfere with other transactions, causing a delay in their execution.
+
+The SQL standard defines four isolation levels, namely Serializable, Repeatable read, Read committed, and Read uncommitted. Each of these levels offers varying degrees of consistency and concurrency, and programmers can set the level explicitly, or accept the system's default setting.
+
+Implementing a weaker isolation level may seem like a shortsighted decision, as it may risk database consistency for performance. However, in certain cases, the inconsistency that may occur is not relevant to the application, making this trade-off worthwhile. While there are various means of implementing isolation levels, as long as the implementation ensures serializability, the database designer or user need not delve into the details of the implementation, except for dealing with performance issues.
+
+In the real world, we often encounter situations where consistency is not the top priority. For instance, a user browsing a website may see an item in stock, only to find out during checkout that the item is no longer available. Similarly, while booking seats for air travel, the seat availability shown to a traveler is a snapshot of the availability at the time of selection, which may change during the booking process. In such scenarios, nonrepeatable reads are acceptable, and weaker isolation levels can be implemented without worrying about database consistency.
 
 ### Implementation of Isolation Levels
 
+In the realm of database management, the implementation of isolation levels is of paramount importance in ensuring the consistency and reliability of concurrent transactions. To provide maximum concurrency while guaranteeing the conflict and view serializability, recoverability, and cascadelessness of all possible schedules, various concurrency-control policies have been devised.
+
+One such policy is locking, where transactions acquire locks only on the data items they access, rather than the entire database, allowing other transactions to execute concurrently on other data items. The two-phase locking protocol is a commonly used technique that ensures serializability. Another technique, timestamps, assigns each transaction a timestamp that determines the order in which they access data items, with offending transactions being aborted and restarted if their accesses conflict.
+
+The implementation of multiple versions of data items, known as multi-version concurrency control, allows transactions to read old versions of data items rather than newer versions written by uncommitted transactions or those that should come later in the serialization order. Snapshot isolation, a widely used technique in this regard, provides each transaction with its own snapshot of the database, ensuring that read-only transactions never need to wait, which is a significant source of performance improvement as compared to locking. However, it also presents the challenge of providing too much isolation, where two transactions may not see the updates made by each other.
+
+In the ever-evolving world of database management, the importance of the implementation of isolation levels cannot be overstated. The innovative concurrency-control policies devised to ensure the conflict and view serializability, recoverability, and cascadelessness of all possible schedules demonstrate the ingenuity of the human mind in finding solutions to complex problems. Whether it is locking, timestamps, or multi-version concurrency-control, the goal remains the same - to provide maximum concurrency while ensuring the consistency and reliability of concurrent transactions.
+
 ### Transactions as SQL Statements
+
+In an age where data is king, the importance of transactions in SQL statements cannot be understated. Ensuring the ACID properties for transactions is critical to maintaining the integrity of the database. However, when transactions are specified as a sequence of SQL statements, issues arise that were not present in the simpler model of simple reads and writes.
+
+In our simplistic model, we assumed a set of data items already existed and data-item values could be changed, but not created or deleted. SQL, on the other hand, allows for insert and delete statements that create and delete data, respectively. These write operations can change the database, but their interactions with the actions of other transactions are different from what we saw in our simple model.
+
+Consider the following SQL query on our university database that finds all instructors who earn more than $90,000:
+
+```from instructor
+      where salary > 90000;
+```
+
+If a user were to insert a new instructor named "James" whose salary is $100,000, the result of our query would differ depending on whether the insert occurred before or after the query was executed. This situation is referred to as the phantom phenomenon, as a conflict may exist on "phantom" data that was not present at the time of the query.
+
+To address this issue, it is necessary to consider not only the tuples accessed by a transaction but also the information used to find the tuples. This information could be updated by an insertion or deletion, or even an update to a search-key attribute in an index. 
+
+Thus, while SQL provides a powerful tool for manipulating data, its implications for concurrency control cannot be overlooked. The existence of a conflict may depend on a low-level query processing decision by the system that is unrelated to a user-level view of the meaning of the two SQL statements. Predicate locking, while expensive and not commonly used in practice, offers an alternative approach to concurrency control by treating an insert, delete, or update as conflicting with a predicate on a relation if it could affect the set of tuples selected by the predicate.
 
 ## Concurrency Control
 
+Concurrency control is a crucial aspect of database management that ensures the isolation property of transactions even when they are executed concurrently. This vital control is maintained through various mechanisms known as concurrency-control schemes. The current chapter examines concurrency-control schemes that allow for non-serializable schedules, while Chapter 16 will address the issue of system recovery from failures.
+
+While there is no clear consensus on the best concurrency-control scheme, the most frequently utilized schemes are snapshot isolation and two-phase locking. This chapter focuses on the administration of concurrently executing transactions, assuming no failures occur, and highlights the advantages of each concurrency-control scheme.
+
 ### Lock-Based Protocols
+
+Lock-based protocols are a common method used to ensure mutual exclusion and isolation in database transactions. This involves allowing a transaction to access a data item only if it is currently holding a lock on that item. Locking can be done in two modes - shared and exclusive. 
+
+![Figure 277 - Lock-compatibility matrix comp](277.png)
+
+Shared-mode lock allows a transaction to read, but not write, a data item while an exclusive-mode lock allows a transaction to both read and write the data item.
+
+![Figure 278 - Transaction T1](278.png)
+
+A compatibility function can be defined for lock modes and represented as a matrix. Shared mode is compatible with shared mode but not with exclusive mode. Transactions must request an appropriate lock mode depending on the operations to be performed on a data item. If the data item is already locked by another transaction in an incompatible mode, the concurrency-control manager will not grant the lock until all incompatible locks held by other transactions have been released.
+
+![Figure 279 - Transaction T2](279.png)
+
+![Figure 280 - Schedule 1](280.png)
+
+An example is given to illustrate the importance of locking and unlocking data items correctly. In a banking scenario, two transactions T1 and T2 are executed. If they are executed serially, the correct output is obtained.
+
+![Figure 281 - Transaction T3 (transaction T1 with unlocking delayed)](281.png)
+
+![Figure 282 - Transaction T4 (transaction T2 with unlocking delayed)](282.png)
+
+However, if they are executed concurrently, then an inconsistent state can be observed if T1 unlocks a data item too early. Delaying unlocking until the end of the transaction can prevent such issues.
+
+![Figure 283 - Schedule 2](283.png)
+
+Overall, lock-based protocols are an effective way to ensure mutual exclusion and isolation in database transactions. Proper use of lock modes and careful locking and unlocking of data items can prevent inconsistent states from occurring.
+
+The concept of transaction-locking protocols has garnered much attention from both academics and industry professionals alike. The reason for this interest is twofold: first, locking protocols are necessary to ensure the correctness of concurrent access to data items by multiple transactions; second, locking protocols enable a database system to enforce a level of isolation between transactions that prevents undesirable phenomena such as lost updates, dirty reads, and non-repeatable reads.
+
+One key aspect of transaction locking protocols is the notion of conflict serializability. This property ensures that all legal schedules of transactions under a given locking protocol are equivalent to a serial schedule, that is, a schedule in which transactions execute one after the other, without overlapping. To achieve conflict serializability, locking protocols restrict the number of possible schedules that can arise during the execution of a set of transactions.
+
+The two-phase locking protocol is a locking protocol that ensures conflict serializability. Under this protocol, transactions are required to issue lock and unlock requests in two distinct phases: the growing phase and the shrinking phase. In the growing phase, a transaction can obtain locks on data items but cannot release any locks. In the shrinking phase, a transaction can release locks but cannot obtain any new locks.
+
+![Figure 284 - Partial schedule under two-phase locking](284.png)
+
+```T8: read(a1);
+        read(a2); 
+        ... 
+            read(an); 
+        write(a1).
+    T9: read(a1); 
+        read(a2); 
+        display(a1 + a2).
+```
+
+While the two-phase locking protocol is an effective mechanism for ensuring conflict serializability, care must be taken to avoid scenarios in which a transaction becomes starved, that is, unable to make progress due to the actions of other transactions. One way to avoid starvation is to grant locks in a manner that prioritizes earlier lock requests over later ones.
+
+![Figure 285 - Incomplete schedule with a lock conversion](285.png)
+
+Transaction locking protocols are an essential tool for ensuring the correctness and isolation of concurrent transactions in a database system. The two-phase locking protocol is one such protocol that guarantees conflict serializability, while also requiring careful consideration of lock-granting mechanisms to avoid transaction starvation.
+
+Locking protocols lie at the heart of database concurrency control, providing a critical mechanism for ensuring the consistency and integrity of transactions operating on shared data. While strict two-phase locking and rigorous two-phase locking with lock conversions have found widespread adoption in commercial database systems, there are situations in which these protocols may not be sufficient to ensure conflict serializability. To overcome this, one may either require additional information about the transactions or impose a structural ordering on the database items.
+
+![Figure 286 - Lock table](286.png)
+
+A well-designed lock manager is essential for implementing these protocols. It acts as a centralized hub for managing requests for locks on database items, sending messages in reply to transactions, and maintaining the current state of each data item. The lock manager accomplishes this by maintaining a lock table, which contains locks for each data item along with a linked list of records indicating the transaction that made the request, the lock mode requested, and the status of the request.
+
+![Figure 287 - Tree-structured database graph](287.png)
+
+```T10: lock-X(B); lock-X(E); lock-X(D); unlock(B); unlock(E); lock-X(G); unlock(D); unlock(G).
+    T11: lock-X(D); lock-X(H); unlock(D); unlock(H). 
+    T12: lock-X(B); lock-X(E); unlock(E); unlock(B). 
+    T13: lock-X(D); lock-X(H); unlock(D); unlock(H).
+```
+
+The lock manager processes requests by adding a record to the appropriate linked list when a lock request message arrives, granting requests only if they are compatible with current locks, and deleting records when a transaction unlocks a data item or aborts. This algorithm guarantees freedom from starvation for lock requests, although it does not prevent deadlocks.
+
+![Figure 288 - Serializable schedule under the tree protocol](288.png)
+
+To develop protocols that are not two-phase, we need additional information about how transactions will access the database. Graph-based protocols provide a useful approach in this regard, enabling the construction of locking protocols that ensure conflict serializability. By imposing partial ordering on the set of data items, transactions can access database items in a structured manner that facilitates efficient concurrency control.
 
 ### Deadlock Handling
 
+When a system is in a deadlock, it means that a set of transactions have been caught in a deadlock loop, with each waiting for another in the set to relinquish a data item that it needs to proceed. The result is a stalemate, with none of the transactions being able to make any headway.
+
+The only way out of such a situation is to take drastic action, such as rolling back some of the transactions involved in the deadlock. This rollback may be partial, with a transaction being rolled back to the point where it obtained a lock whose release resolves the deadlock.
+
+There are two main methods for dealing with the deadlock problem: prevention and detection and recovery. The former ensures that the system will never enter a deadlock state by ordering requests for locks or requiring all locks to be acquired together. The latter allows the system to enter a deadlock state and then tries to recover from it using a detection and recovery scheme. Both methods may result in a transaction rollback.
+
+![Figure 289 - Wait-for graph with no cycle](289.png)
+
+One approach to deadlock prevention involves ordering all data items and requiring a transaction to lock data items only in a sequence consistent with the ordering. Another approach uses preemption and transaction rollbacks to prevent deadlocks. In this approach, a transaction requesting a lock held by another transaction may preempt the lock by rolling back the other transaction and granting the lock.
+
+![Figure 290 - Wait-for graph with a cycle](290.png)
+
+Each approach has its own set of advantages and disadvantages, with unnecessary rollbacks being a common problem in many schemes. However, with careful consideration and implementation, the chances of a system being caught in a deadlock can be greatly reduced, and a smooth and efficient operation can be achieved.
+
 ### Multiple Granularity
+
+The concept of multiple granularity in concurrency-control schemes was introduced to address the need for grouping several data items and treating them as one individual synchronization unit. This ingenious mechanism enables the system to define a hierarchy of data granularities, where the smaller granularities are nested within larger ones, as graphically represented by a tree.
+
+![Figure 291 - Granularity hierarchy](291.png)
+
+Each nonleaf node of this tree, which is significantly different from that used by the tree protocol, represents the data associated with its descendants. The tree of the figure, for example, consists of four levels of nodes that represent the entire database, areas, files, and records.
+
+One of the primary benefits of this multiple-granularity hierarchy is that a transaction can lock each node individually using shared and exclusive lock modes, thus ensuring serializability. The locking of a node in either mode also implies that all of its descendants are implicitly locked in the same mode.
+
+![Figure 292 - Compatibility matrix](292.png)
+
+To ensure compatibility among the various lock modes, a new class of lock modes, called intention lock modes, was introduced. These modes allow explicit locking to be done at a lower level of the tree while also enabling a transaction to traverse the tree from the root to the desired node and lock each node along the way in an intention mode.
+
+This approach significantly enhances the efficiency of locking large data items by reducing the time needed to perform lock requests. Additionally, it allows for finer control over the concurrency of the system, which can improve its performance and scalability.
 
 ### Timestamp-Based Protocols
 
+Concurrency control is an essential mechanism for ensuring correctness and consistency. One approach to concurrency control is the use of timestamp-based protocols, which rely on assigning unique timestamps to each transaction in the system. These timestamps then determine the serializability order, which ensures that conflicting read and write operations are executed in the correct order.
+
+```T25: read(B);
+    read(A); 
+    display(A + B).
+```
+
+To implement this scheme, each data item in the system is associated with two timestamp values that are updated whenever a new read or write instruction is executed. The timestamp-ordering protocol then ensures that any conflicting read and write operations are executed in timestamp order, thereby guaranteeing conflict serializability.
+
+```T26: read(B);
+    B:=B −50; 
+    write(B); 
+    read(A);
+    A:= A+ 50; 
+    write(A); 
+    display(A + B).
+```
+
+![Figure 293 - Schedule 3](293.png)
+
+While this protocol ensures freedom from deadlock, there is a possibility of starvation of long transactions if a sequence of conflicting short transactions causes repeated restarting of the long transaction. Additionally, the protocol can generate schedules that are not recoverable, but this can be addressed by performing all write together at the end of the transaction or by using a limited form of locking.
+
+![Figure 294 - Schedule 4](294.png)
+
+It is worth noting that while the timestamp protocol and the two-phase locking protocol can produce similar schedules, there are schedules that are possible under one protocol but not the other. Overall, the timestamp-ordering protocol represents a powerful tool for ensuring correctness and consistency in database management systems.
+
 ### Validation-Based Protocols
+
+As transactions vie for control over database resources, validation-based protocols offer a viable alternative to the traditional concurrency control scheme. In circumstances where the majority of transactions are read-only, the occurrence of conflicts may be rare. As such, a validation-based protocol, with its minimal overhead, presents a desirable option. However, the unpredictability of conflict occurrence necessitates the need for a scheme that can monitor the system for potential conflicts.
+
+The validation protocol, a three-phased process, facilitates the execution of transactions while ensuring a consistent state of the database. During the read phase, the transaction reads data items and stores them in local variables, while any write operations are made on temporary local variables. In the validation phase, the transaction undergoes a validation test to determine its suitability for proceeding to the write phase, which entails updating the actual database with data from the local variables.
+
+![Figure 295 -Schedule 6, a schedule produced by using validation](295.png)
+
+To determine the serializability order of transactions, the protocol uses a timestamp-ordering technique. Each transaction is associated with three timestamps: start, validation, and finish. By comparing the timestamps of concurrently executing transactions, the validation protocol ensures that any produced schedule is equivalent to a serial schedule. In the validation test, all transactions with a lower timestamp must meet one of two conditions. First, the transaction must have been completed before the current transaction started. Alternatively, if the sets of data items written and read by the transactions do not intersect, and the earlier transaction has been completed, the current transaction may proceed.
+
+The validation-based protocol offers a streamlined and efficient alternative to concurrency-control schemes, particularly in situations where read-only transactions are prevalent. By monitoring the system and employing a timestamp-based approach, the protocol ensures the consistency of the database while minimizing overhead and maximizing response time.
 
 ### Multiversion Schemes
 
+We explore the concept of multi-version concurrency control schemes in database systems. These schemes, unlike the traditional concurrency-control schemes, avoid delaying or aborting transactions by keeping old copies of data items in the system.
+
+In a multi-version scheme, each write operation creates a new version of the data item, and the concurrency-control manager selects the appropriate version to be read by a transaction. The selected version must ensure serializability and should be quickly determinable for performance reasons.
+
+The multiversion timestamp-ordering protocol, which extends the traditional timestamp-ordering protocol, ensures serializability by associating a static timestamp with each transaction and a sequence of versions with each data item. Whenever a transaction creates a new version of a data item, it initializes the W-timestamp and R-timestamp fields to its timestamp. The system updates the R-timestamp value of a version whenever a transaction reads its content.
+
+Under this scheme, a read request never fails and is never made to wait, which is advantageous for database systems where reading is more frequent than writing. However, the scheme has two drawbacks: reading a data item requires two disk accesses, and conflicts between transactions are resolved through rollbacks rather than waits, which can be costly.
+
+To address these issues, the multiversion two-phase locking protocol combines the advantages of multi-version concurrency control with those of two-phase locking. Update transactions hold all locks up to the end of the transaction and follow rigorous two-phase locking, while read-only transactions follow the multi-version timestamp-ordering protocol.
+
+Overall, these multi-version schemes offer an efficient way to ensure serializability in database systems while avoiding the drawbacks of traditional concurrency-control schemes.
+
 ### Snapshot Isolation
+
+Snapshot isolation is a widely accepted concurrency-control scheme that has gained popularity in both commercial and open-source database management systems, including the likes of Oracle, PostgreSQL, and SQL Server. Introduced earlier in the Section, we now delve deeper into its inner workings to gain a more comprehensive understanding.
+
+The idea behind snapshot isolation is to give a transaction a "snapshot" of the database at the beginning of its execution, on which it operates in isolation from concurrent transactions. The data values in this snapshot consist only of committed transactions, making it ideal for read-only transactions that never wait nor get aborted by the concurrency manager.
+
+However, transactions that update the database must interact with potentially conflicting concurrent update transactions before they can actually place the updates in the database. These updates are kept in the transaction's private workspace until the transaction successfully commits, at which point the updates are written to the database.
+
+Deciding whether or not to allow an update transaction to commit requires caution since two concurrent transactions might attempt to update the same data item. This could result in a lost update if both transactions are allowed to write to the database, where the first update written would be overwritten by the second. To prevent this, two variants of snapshot isolation are used, namely, first committer wins and first updater wins, both of which are based on testing the transaction against concurrent transactions.
+
+Under first committer wins, when a transaction enters the partially committed state, it undergoes a test to see if any concurrent transaction has already written an update to the database for some data item that the transaction intends to write. If some such transaction is found, then the transaction aborts; otherwise, the transaction commits and writes its updates to the database.
+
+In contrast, under first updater wins, the system uses a locking mechanism that applies only to updates. If a transaction attempts to update a data item, it requests a write lock on that data item. If the lock is not held by a concurrent transaction, the transaction can proceed with its execution, including possibly committing. However, if some other concurrent transaction already holds a write lock on that data item, the transaction waits until that transaction aborts or commits. If the latter, the transaction must abort.
+
+While snapshot isolation is attractive in practice due to its low overhead and minimal aborts, it does not ensure serializability, even in Oracle, which uses it as the implementation for the serializable isolation level. This presents a significant problem, as we demonstrate through examples of possible non-serializable executions under snapshot isolation and how to deal with them.
 
 ### Insert Operations, Delete Operations, and Predicate Reads
 
+As we delve deeper into the realm of database management, we come across a crucial aspect that plays a significant role in maintaining the integrity and consistency of the database - concurrency control. In particular, we examine the impact of operations such as insertions and deletions on concurrency control, which have hitherto been ignored.
+
+As we know, database transactions not only access the existing data items but also create or delete new data items. Therefore, it becomes essential to understand the effects of such operations on concurrency control. A logical error in a transaction can occur when it tries to read or delete a nonexistent data item or read after the deletion or before insertion.
+
+When a delete instruction is executed, we must determine when it conflicts with another instruction. If two instructions of two different transactions are deleting the same data item, then a logical error may occur. Similarly, when an insert operation is executed, it conflicts with a delete or read operation on the same data item. Therefore, for concurrency control purposes, an insert operation is treated as a write operation.
+
+Moreover, while dealing with the timestamp-ordering protocol, a test similar to that for a write must be performed before a delete operation. If the delete operation passes this test, it can be executed; otherwise, it is rolled back. An insert operation assigns a value to the newly created data item and is given an exclusive lock under the two-phase locking protocol. Under the timestamp-ordering protocol, the R-timestamp and W-timestamp are set to the transaction's timestamp.
+
+```select count(*)
+    from instructor 
+    where dept name = ’Physics’ ;
+```
+
+```insert into instructor
+    values (11111,’Feynman’, ’Physics’, 94000);
+```
+
+However, despite all these measures, a unique problem may still arise - the phantom phenomenon. When two transactions, T30 and T31, conflict on a phantom tuple, concurrency control performed at the tuple granularity may go undetected. Thus, the system may fail to prevent a non-serializable schedule. In such a case, it becomes imperative to employ techniques like index locking to tackle the issue.
+
+Thus, as we unravel the intricacies of database management, we realize the paramount importance of concurrency control, which forms the backbone of any robust and reliable database system.
+
+Concurrency control is a vital concern. To ensure that transactions are executed safely and efficiently, locking protocols are used to prevent conflicts between competing transactions. But when it comes to the phenomenon known as the phantom, conventional locking mechanisms may fall short.
+
+Phantom phenomena arise when a transaction retrieves a set of records based on a certain criterion, but another transaction subsequently modifies the records in such a way that they no longer meet the original criterion. This can lead to conflicts that are difficult to resolve using traditional locking techniques.
+
+To address this issue, an index-locking protocol has been developed that takes advantage of the availability of indices on a relation. By locking index leaf nodes, instances of the phantom phenomenon are transformed into conflicts on locks, enabling more effective concurrency control.
+
+Under the index-locking protocol, every relation must have at least one index. Transactions are only allowed to access tuples of a relation after first finding them through one or more of the indices on the relation. For the purpose of the protocol, a relation scan is treated as a scan through all the leaves of one of the indices.
+
+When performing a lookup, a transaction must acquire a shared lock on all the index leaf nodes that it accesses. And if a transaction wishes to insert, delete, or update a tuple in a relation, it must obtain exclusive locks on all index leaf nodes that are affected by the operation.
+
+Of course, the index-locking protocol has its limitations. Locking an index leaf node can prevent updates to the node even if the update would not actually conflict with the predicate. A variant known as key-value locking is presented as a means of minimizing such false lock conflicts.
+
+Despite these challenges, the index-locking protocol remains a powerful tool for effective concurrency control in database systems. By using this approach, transactions can execute safely and efficiently, even in the face of phantom phenomena and other tricky concurrency issues.
+
 ### Weak Levels of Consistency in Practice
+
+In this piece, we delve into the intricacies of transactional consistency in databases, particularly in the context of weaker levels of consistency. We first highlight older terminology relating to weaker consistency levels and their relation to the levels specified in the SQL standard.
+
+The article then proceeds to tackle the issue of concurrency control for transactions involving user interaction. We explore the concept of degree-two consistency, which is designed to avoid cascading aborts without necessarily ensuring serializability. This locking protocol for degree-two consistency uses shared and exclusive lock modes that function differently from those in two-phase locking.
+
+![Figure 296 - Nonserializable schedule with degree-two consistency](296.png)
+
+Furthermore, the article explores cursor stability, which is a form of degree-two consistency used for programs that iterate over tuples of a relation using cursors. This method ensures that the tuple currently being processed by the iteration is locked in shared mode, while any modified tuples are locked in exclusive mode until the transaction commits.
+
+However, while cursor stability can improve system performance, it is limited to specialized situations with simple consistency constraints, and its use requires that applications be coded in a way that ensures database consistency despite the possibility of non-serializable schedules.
+
+Finally, the article delves into concurrency control across user interactions, which requires a different approach to traditional protocols. We explore various options, such as snapshot isolation, timestamp protocols, and validation, before delving into an alternative concurrency control scheme that uses version numbers stored in tuples to avoid lost updates.
 
 ### 0Concurrency in Index Structures**
 
+Index structures are the backbone of efficient and speedy queries. However, when it comes to implementing concurrency control on these structures, lock contention becomes a major issue, leading to a decreased level of concurrency. But, lo and behold, there is a way to maintain accuracy while avoiding such lock contention, thus achieving non-serializable concurrent access to index structures.
+
+To this end, two techniques for managing concurrent access to B+ trees have been proposed. The first is called the "crabbing protocol," wherein a shared lock is first placed on the root node before traversing down the tree with shared locks on child nodes, eventually reaching a leaf node where an exclusive lock is placed for insertion or deletion. The protocol then works its way back up the tree, propagating any necessary splitting or coalescing operations.
+
+However, for even greater concurrency, a modified version of B+ trees called B-link trees comes into play. This technique allows for the avoidance of holding locks on one node while acquiring locks on another node, thanks to each node, including internal nodes, maintaining a pointer to its right sibling.
+
+In this locking protocol, every node must be locked in shared mode before it is accessed, with a non-leaf node's lock being released before any other lock is requested. A split during lookup may mean that the desired search key value is no longer in the accessed node's range of values, in which case, the system searches the sibling node by following the right-sibling pointer. Leaf nodes are locked following the two-phase locking protocol to prevent the phantom phenomenon.
+
+![Figure 297 - B-link tree for department ﬁle with n = 3](297.png)
+
+For insertion and deletion, the rules for the lookup are followed to locate the leaf node where the insertion or deletion will be made. The shared-mode lock on this node is then upgraded to exclusive mode, and the insertion or deletion is performed. Leaf nodes affected by the operation are locked following the two-phase locking protocol.
+
+![Figure 298 - Insertion of “Chemistry” into the B-link tree of Figure](298.png)
+
+Finally, splits are handled by creating a new node as the right sibling of the original node, with both nodes' right-sibling pointers being set. The transaction then releases the exclusive lock on the original node, requesting one on the parent to insert a pointer to the new node. Coalescing operations follow a similar process.
+
 ## Recovery System
+
+In the fast-paced world of computing, where information is the lifeblood of business and communication, a system failure can be catastrophic. A single glitch can cause a domino effect that results in the loss of vital data, leaving organizations vulnerable to enormous financial losses and reputational damage. This is why a recovery system is an essential component of any database system.
+
+As with any technological device, a computer system is susceptible to a wide range of potential failures. These can be caused by a variety of factors, from hardware issues to natural disasters, and even malicious acts of sabotage. Given the severity of such threats, a database system must be designed with the ability to preserve the atomicity and durability properties of transactions.
+
+To this end, an effective recovery scheme is required. Such a scheme must be capable of restoring a database to its pre-failure state, thereby ensuring the consistency and integrity of the system. In addition, it must provide high availability to minimize any downtime that may occur after a failure. In short, a robust and reliable recovery system is an indispensable tool in the modern era of computing.
 
 ### Failure Classiﬁcation
 
+In the world of computer systems, failures are an inevitability. From hardware malfunctions to software bugs, a variety of issues can cause a system to come to a screeching halt. The impact of these failures can be devastating, leading to data loss and system downtime. To mitigate the damage caused by these failures, recovery systems must be put in place.
+
+One of the key components of a recovery system is the ability to classify different types of failures. This classification allows for targeted and efficient recovery efforts. In this chapter, we focus on three main types of failures: transaction failure, system crash, and disk failure.
+
+Transaction failures can be caused by either logical or system errors. Logical errors occur when a transaction is unable to continue due to internal conditions, such as bad input or resource limitations. System errors, on the other hand, occur when the system enters an undesirable state, such as a deadlock, that prevents the transaction from continuing. In both cases, recovery algorithms must be put in place to ensure that the atomicity and durability of transactions are preserved.
+
+System crashes, caused by hardware malfunctions or software bugs, result in the loss of volatile storage content and bring transaction processing to a halt. However, nonvolatile storage content remains intact and is not corrupted, thanks to fail-stop assumptions and internal checks in well-designed systems.
+
+Disk failures, such as head crashes or data-transfer operation failures, result in the loss of disk block content. To recover from these failures, copies of the data on other disks or archival backups on tertiary media, such as DVDs or tapes, must be utilized.
+
+The recovery algorithms put in place have two parts: actions taken during normal transaction processing to ensure that enough information exists to allow recovery from failures, and actions taken after a failure to recover the database contents to a state that ensures database consistency, transaction atomicity, and durability. By properly classifying failures and implementing targeted recovery systems, we can minimize downtime and preserve the integrity of our valuable data.
+
 ### Storage
+
+The storage and access of data is a paramount concern. We delved into the various media that can be employed to store and access data, highlighting differences in terms of speed, capacity, and resilience to failure. To ensure the stability and security of data, stable storage is a crucial component of recovery algorithms. However, stable storage is not invincible to disaster. While RAID systems, such as mirrored disks, provide a layer of protection against data loss due to single disk failure, they are powerless against natural disasters like fires or floods. Thus, a remote backup system that outputs blocks to a computer network at a different location can help ensure data stability in the event of a disaster.
+
+Despite the importance of stable storage, data transfer between memory and disk storage is not without its challenges. This transfer can result in partial or total failure, so the system must detect data-transfer failure and invoke a recovery procedure to restore the block to a consistent state. To minimize the impact of such failures, the system must maintain two physical blocks for each logical database block, with the output operation completed only after both blocks have been successfully written. However, if a system fails while blocks are being written, the two copies of a block may be inconsistent with each other. In such cases, the system must examine both copies of the blocks during recovery to determine the appropriate action. To reduce the cost of recovery, a small amount of nonvolatile RAM can be employed to keep track of block writes that are in progress.
+
+![Figure 299 - Block storage operations](299.png)
+
+Data access is also a critical component of database management. The database system resides on nonvolatile storage, and the database is partitioned into fixed-length storage units called blocks. Transactions input information from the disk to the main memory, and then output the information back onto the disk in block units. In this process, physical blocks are transferred to the main memory as buffer blocks, which reside temporarily in the disk buffer. Initiating block movements between the disk and main memory is accomplished through input and output operations.
 
 ### Recovery and Atomicity
 
+In the world of database management, the need for recovery and atomicity is paramount. Consider the example of a banking system, where a transaction Ti transfers $50 from account A to account B. In the event of a system crash during Ti's execution, where the output(BA) has taken place, but the output(BB) has not, there is no way to know the fate of the transaction. Upon system restart, the inconsistency of the initial values of A and B violates the atomicity requirement for Ti.
+
+To ensure atomicity, output operations must be performed without modifying the database itself. The most widely used method for recording database modifications is the log, which is a sequence of log records. An update log record describes a single database write and includes fields such as the transaction and data-item identifiers, the old and new values of the data item, and more. By maintaining a log of all update activities, committed transactions can be reflected in the database during recovery actions after a crash, while aborted transactions can be prevented from persisting in the database.
+
+Although shadow-copy schemes can be used for small databases, copying a large database would be extremely expensive. A variant of shadow copying, called shadow-paging, reduces copying by using a page table containing pointers to all pages. However, shadow-paging is not widely used in databases due to its inability to work well with concurrent transactions.
+
+As transactions occur in a database system, it is crucial to ensure the durability of their updates even in the event of a system crash. To accomplish this, the system maintains a log of all updates and operations performed by transactions and periodically outputs these logs to stable storage. When a transaction commits, its commit log record is output to stable storage, signifying the end of the transaction and allowing for its updates to be redone in the event of a system crash. Conversely, if a system crash occurs before a commit log record is an output to stable storage, the transaction is rolled back.
+
+![Figure 300 - Portion of the system log corresponding to T0 and T1](300.png)
+
+```T0: read(A);
+    A:= A − 50; 
+    write(A); 
+    read(B);
+    B:=B+ 50;
+    write(B).
+```
+
+```T1:read(C);
+    C:=C− 10
+    write(C)
+```
+
+Recovering from a system crash involves using the log to identify which transactions need to be redone and which need to be undone. Redo procedures set all data items updated by a transaction to their new values, while undo procedures restore these items to their old values. Redo and undo procedures are carried out by scanning the log and performing actions on each log record encountered. To ensure the correctness of the recovered database, the order of updates performed during redo and undo procedures must match the original order of updates.
+
+![Figure 301 - State of system log and database corresponding to T0 and T1](301.png)
+
+In the case of a system crash, transactions are either redone or undone based on the presence of certain log records. If a transaction's log contains a start record but no commit or abort record, the transaction needs to be undone. Conversely, if the log contains a start record along with a commit or aborts record, the transaction needs to be redone. This procedure ensures the atomicity of transactions and allows for a speedy and efficient recovery process.
+
+![Figure 302 - The same log, shown at three different times](302.png)
+
+In sum, the log-based recovery techniques used in database systems are essential for maintaining data durability and ensuring that transactions can be recovered in the event of a system crash. By using the log to identify and redo/undo transactions, the system can maintain the integrity of its data and minimize recovery time.
+
+The process of identifying the transactions that require redoing or undoing can be arduous and time-consuming, given that it involves searching through the entire log. Furthermore, redoing transactions that have already made updates to the database can lead to longer recovery times, despite being harmless. To mitigate these issues, database systems employ checkpointing mechanisms.
+
+One such approach involves outputting all modified buffer blocks to disk, preventing any updates from occurring during the checkpoint operation, and outputting all log records currently residing in the main memory. This creates a stable storage checkpoint that lists all transactions active at the time of the checkpoint.
+
+This method enables recovery procedures to streamline their operations, as the presence of a  record in the log permits a straightforward analysis of the transactions requiring undoing or redoing. Transactions that are completed before the checkpoint, such as Ti, require no redoing, as their modifications must have been written to the database before or as part of the checkpoint. On the other hand, transactions that began execution after the checkpoint, such as T, need to undergo either undo or redo operations.
+
+By examining the part of the log that starts with the last checkpoint log record, we can determine which transactions require undoing or redoing. Transactions that have no  or  records in the log are undone, while transactions that do have either record are redone. The set of transactions requiring analysis only includes those that began executing after the checkpoint. The remaining completed transactions require no analysis, thereby minimizing recovery time.
+
+A fuzzy checkpointing scheme that allows transactions to perform updates during buffer block outputting is also available. Additionally, a more flexible checkpointing and recovery scheme that relaxes the update prevention requirement and only outputs some modified buffer blocks to disk is possible. These schemes are further elaborated on in later sections.
+
 ### Recovery Algorithm
+
+In a groundbreaking advancement, we delve into the heart of the recovery algorithm - an elusive yet critical piece of technology that remains shrouded in mystery. Thus far, we have identified the transactions that require rollback or recovery, yet a concrete algorithm for executing such tasks eluded us until now. In this definitive presentation, we will uncover the full extent of the recovery algorithm, utilizing log records to recover from transaction failure and a combination of the latest checkpoint and log records to recover from a system crash.
+
+To initiate transaction rollback during normal operation, we must traverse the log in reverse, finding each log record of the form. Upon discovery, we restore the value V1 to data item Xj, creating a special redo-only log record, denoting the value being restored to data item Xj during the rollback. These compensation log records do not require undoing information since we never undo such an undo operation.
+
+Upon encountering, the scan halts, and a log record is added to the log. Notably, every update action performed by the transaction or on behalf of the transaction has now been recorded in the log, paving the way for the subsequent phases of recovery.
+
+Recovery actions, when the database system is restarted after a crash, involve two phases. The redo phase replays the updates of all transactions, scanning the log forward from the last checkpoint. The list of transactions to be rolled back, the undo list, is initially set to the list L in the log record. As each log record of the form is encountered, we redo the operation, i.e., we write the value V2 to data item Xj. Whenever is found, Ti is added to the undo list, while or removes Ti from the undo list. The undo list thus contains the list of all incomplete transactions, i.e., they neither committed nor completed rollback before the crash.
+
+In the undo phase, the system rolls back all transactions in the undo list, scanning the log backward from the end. Upon discovering a log record belonging to a transaction in the undo list, the system performs undo actions just as if the log record had been found during the rollback of a failed transaction. When is found for a transaction Ti in the undo list, a  log record is written to the log, and Ti is removed from the undo list. The undo phase concludes once undo list becomes empty.
+
+![Figure 303 - Example of logged actions, and actions during recovery](303.png)
+
+Despite repeating every log record since the latest checkpoint record in the redo phase, this process is essential, for it repeats all the update actions executed after the checkpoint, including those of incomplete transactions and the actions performed to roll back failed transactions. This process called repeating history, simplifies recovery schemes and is deemed indispensable in executing seamless and successful recovery.
 
 ### Buffer Management
 
+In this section, we delve into the intricacies of a crash-recovery scheme that ensures data consistency while minimizing overhead on interactions with the database. As we navigate this complex terrain, we come across several subtle details that require our full attention.
+
+One of the key considerations is log-record buffering. Traditionally, every log record is output to stable storage at the time it is created, resulting in a high overhead on system execution. To address this issue, log records can be temporarily stored in a log buffer in the main memory before being output to stable storage. This approach allows multiple log records to be gathered and output to stable storage in a single operation, thereby reducing the output of each log record to a much smaller scale.
+
+```< T0 start >
+    < T0, A, 1000, 950 >
+```
+
+However, the downside of log buffering is that a log record may reside only in volatile storage for a considerable time before being output to stable storage. To address this issue, additional requirements need to be imposed on the recovery techniques to ensure transaction atomicity. The write-ahead logging (WAL) rule specifies that before a block of data in the main memory can be output to the database, all log records pertaining to data in that block must have been output to stable storage.
+
+In addition, we need to consider the use of a two-level storage hierarchy, where the system stores the database in nonvolatile storage (disk) and brings blocks of data into the main memory as needed. Since main memory is typically much smaller than the entire database, it may be necessary to overwrite a block in main memory when another block needs to be brought into memory. This requires careful consideration of the policies for writing modiﬁed blocks to disk when transactions commit.
+
+Overall, the implementation of a crash-recovery scheme that ensures data consistency and imposes minimal overhead on interactions with the database requires careful attention to detail and a deep understanding of the system's underlying architecture. Only by navigating this complex terrain with precision and skill can we ensure the seamless operation of the database system, and provide users with a reliable and efficient computing experience.
+
 ### Failure with Loss of Nonvolatile Storage
+
+In a bold departure from previous discussions centered around the failure of volatile storage, we now turn our attention to the rare but nonetheless consequential failure of nonvolatile storage in the context of disk storage. While the loss of content in nonvolatile storage is infrequent, the gravity of such a failure necessitates a preparedness strategy.
+
+Enter the database dumping scheme, which involves a periodic transfer of the entire database contents to stable storage, such as magnetic tapes, to create an archival dump. In the event of a nonvolatile storage failure that leads to physical database block loss, the system uses the most recent dump to restore the database to a previous consistent state and subsequently leverages the log to bring the database to the most up-to-date consistent state.
+
+To recover from partial nonvolatile storage failure, such as the loss of a single or few blocks, only the affected blocks need restoration, with corresponding redo actions performed solely for those blocks. It is worth noting that the system requires no undo operations in this process.
+
+As with most high-stakes solutions, the database dumping scheme comes with a considerable cost. The need to copy the entire database to stable storage, resulting in significant data transfer, and the halting of transaction processing during the dump procedure, leading to wasted CPU cycles, are two significant drawbacks. However, researchers have developed fuzzy dump schemes, akin to fuzzy-checkpointing schemes, that allow transactions to remain active during the dump procedure, minimizing the costs of the process.
+
+Furthermore, database systems support an SQL dump that writes out SQL DDL statements and SQL insert statements to a file, facilitating the recreation of the database. These dumps are particularly useful during data migration to a different instance or version of the database software.
 
 ### Early Lock Release and Logical Undo Operations
 
+In this section, we delve into the intricacies of early lock release and logical undo operations in database systems. By treating an index, such as a B+-tree, as normal data, we can boost concurrency using the B+-tree concurrency-control algorithm. However, early lock release can lead to the updating of a B+-tree node by multiple transactions, making undo operations challenging.
+
+To address this issue, we introduce the concept of logical operations, which are operations that release locks early and require logical undo operations. This approach not only applies to indices but also to other frequently accessed system data structures, such as blocks containing records of a relation, free space in a block, and free blocks in a database.
+
+To prevent concurrent transactions from executing conflicting actions, operations acquire lower-level locks while executing and release them upon completion. Transactions, however, must retain a higher-level lock in a two-phase manner. When a lower-level lock is released, the operation cannot be undone using old values of updated data items and must be undone through a compensating operation, also known as a logical undo operation.
+
+![Figure 304 - Transaction rollback with logical undo operations](304.png)
+
+To facilitate logical undo operations, a transaction creates a log record before an operation to modify an index is performed. The system generates update log records for each update performed by the operation, and upon completion, writes an operation-end log record containing undo information. It is crucial to acquire sufficient lower-level locks during an operation to enable a subsequent logical undo operation.
+
+![Figure 305 - Failure recovery actions with logical undo operations](305.png)
+
+Notably, logical logging is used exclusively for undo, while physical logging is used for redo operations. The state of the database after a system failure may reflect some updates of an operation and not others, rendering logical redo or undo operations impossible. To perform logical redo or undo, the database state on disk must be operation consistent.
+
+While the intricacies of early lock release and logical undo operations may seem daunting, they are critical to database systems' performance and integrity. By leveraging the concepts introduced in this section, database systems can achieve greater concurrency and reliability.
+
 ### ARIES**
+
+The ARIES recovery method is a remarkable feat of engineering that has pushed the boundaries of what was previously thought possible in the field of recovery techniques. It employs a sophisticated set of algorithms to reduce the overhead of checkpointing and speed up recovery times, at the cost of increased complexity.
+
+![Figure 306 - Data structures used in ARIES](306.png)
+
+At the heart of ARIES lies its use of log sequence numbers (LSNs) to uniquely identify each log record and locate it on disk. ARIES splits the log into multiple log files, each with a file number, and generates an LSN that consists of a file number and an offset within the file. This approach enables ARIES to efficiently retrieve and apply log records during the redo phase of recovery.
+
+Moreover, ARIES supports physiological redo operations that allow for physical changes to a page to be represented logically, resulting in smaller log records that reduce the overhead of recovery. Additionally, ARIES utilizes a dirty page table to minimize unnecessary redos during recovery, and a fuzzy-checkpointing scheme that continuously flushes dirty pages in the background, avoiding the need to write them to disk during checkpoints.
+
+![Figure 307 - Recovery actions in ARIES](307.png)
+
+The use of PageLSNs is another critical aspect of ARIES that helps ensure idempotence in the presence of physiological redo operations. By storing the LSN of its log record in the PageLSN field of a page, ARIES can avoid executing any log records with LSN less than or equal to the PageLSN of a page, as their actions are already reflected on the page.
+
+Finally, the DirtyPageTable stores a list of updated pages, along with their PageLSNs and RecLSNs, enabling ARIES to efficiently locate and apply log records during recovery. These data structures and techniques, along with numerous others not described here, have made ARIES the state-of-the-art in recovery methods, setting a high bar for future research in the field.
 
 ### Remote Backup Systems
 
+In a world where environmental disasters loom large, traditional transaction-processing systems prove to be vulnerable and fragile. With fires, floods, earthquakes, and other calamities posing an imminent threat, transaction-processing systems must evolve and adapt to ensure high availability, even in the face of system failures and disasters.
+
+The answer to this dilemma lies in remote backup systems. A primary site carries out transaction processing, while a remote backup site acts as a backup, housing all the data from the primary site. Synchronization is key to this arrangement, and all log records from the primary site are sent to the remote backup site to ensure updates are kept up to date.
+
+![Figure 308 - Architecture of remote backup system](308.png)
+
+The remote backup site must be physically separated from the primary site to protect it from disasters that might befall the primary. When the primary site fails, the remote backup site takes over processing. Recovery actions that would have been performed at the primary site are executed, using its (perhaps outdated) copy of the data from the primary and the log records received from the primary.
+
+However, several critical issues need to be addressed when designing a remote backup system. The system must detect when the primary site has failed, which is achieved by maintaining several communication links with independent modes of failure. The transfer of control from the primary to the backup site must be smooth, and if control must be transferred back, the old backup site can pretend to have failed, resulting in the old primary taking over.
+
+In terms of durability, the remote backup site can periodically process the redo log records that it has received and can perform a checkpoint so that earlier parts of the log can be deleted. In a hot-spare configuration, the remote backup site continually processes redo log records, and as soon as the failure of the primary is detected, the backup site completes recovery and is ready to process new transactions.
+
+The degree of durability can vary, and different schemes are available to ensure updates are durable. The one-safe scheme is the most basic, but it has the problem of lost updates. The two-very-safe scheme, while effective, can result in lower availability. The two-safe scheme provides better availability while avoiding the problem of lost transactions faced by the one-safe scheme.
+
+Remote backup systems provide an effective solution to the problem of transaction-processing systems' vulnerability to environmental disasters. By addressing several critical issues and implementing different durability schemes, remote backup systems can ensure high availability and protect against data loss.
+
 # SYSTEM ARCHITECTURE
+
+The architecture of a database system is influenced by the computer system it runs on. There are centralized database systems, where one server machine handles database operations and distributed databases that span multiple geographically separated machines. The different processes that enable database functionality are outlined in detail for server and client-server architectures. The chapter also describes parallel computer architectures and parallel database architectures suitable for different types of parallel computers. Furthermore, architectural issues related to building distributed database systems are discussed.
+
+The subsequent chapter delves into how database actions, particularly query processing, can be implemented to take advantage of parallel processing. In the following chapter, various issues that arise in a distributed database system are discussed, such as storing data, ensuring transactional atomicity across multiple sites, concurrency control, and providing high availability in case of failures. The chapter also covers cloud-based data storage systems, distributed query processing, and directory systems.
 
 ## Database-System Architectures
 
+The architecture of a database system is a critical determinant of its performance and efficiency, and is heavily influenced by the underlying computer system. The aspects of computer architecture that impact database systems the most are networking, parallelism, and distribution. The advent of networking has led to the development of client-server database systems, which allow tasks to be divided between server and client systems. Similarly, parallel processing within a computer system has facilitated faster response times and increased throughput, leading to the development of parallel database systems. Distributing data across multiple sites enables organizations to store data where it is generated or most needed, and helps ensure that data remains accessible even in the event of natural disasters. This has given rise to distributed database systems, which handle geographically or administratively distributed data spread across multiple database systems. In this chapter, we examine the architecture of database systems, starting with traditional centralized systems and covering client-server, parallel, and distributed database systems.
+
 ### Centralized and Client–Server Architectures
+
+In the ever-evolving world of computer systems architecture, the dichotomy between centralized and client-server systems remains at the forefront of discussion. In a centralized system, databases operate on a single computer, with no interaction with other systems. This system varies in scale, ranging from a simple single-user database on a personal computer to a high-performance database on a server. Contrastingly, a client-server system features a division of functionality between a central server and several client systems.
+
+A modern general-purpose computer system, for instance, consists of one to a few processors and device controllers linked by a common bus. While each processor possesses local cache memories to hasten data access, device controllers are responsible for specific devices like disk drives and video displays. Single-user systems, such as personal computers, function independently, while multi-user systems support a large number of remotely connected users.
+
+![Figure 309 - A centralized computer system](309.png)
+
+While single-user databases do not provide many facilities for multiuser databases, such as concurrency control and advanced SQL queries, databases designed for multi-users provide full transactional features. In terms of parallelism, databases running on systems with coarse-granularity parallelism, with only a few processors, do not attempt to partition a single query. In contrast, machines with fine-granularity parallelism, with a high number of processors, aim to parallelize single tasks, such as queries, submitted by users.
+
+As personal computers became faster, more powerful, and affordable, centralized system architecture became obsolete. Personal computers replaced terminals connected to centralized systems, and as a result, centralized systems evolved into server systems that respond to requests from client systems. Today, centralized systems act as server systems that cater to the demands of client systems.
+
+The functionality of database systems can be divided into the front end and the back end. The back end manages access structures, query evaluation and optimization, concurrency control, and recovery. The front end consists of tools such as the SQL user interface, forms interfaces, report generation tools, and data mining and analysis tools. The interface between the front end and the back end is via SQL or an application program.
+
+![Figure 310 - General structure of a client–server system](310.png)
+
+In the realm of client-server architecture, standards such as ODBC and JDBC were developed to interface clients with servers. A three-tier architecture is adopted for systems dealing with a large number of users. Here, the front end is a Web browser that talks to an application server, while the application server acts as a client to the database server.
+
+Parallelism will emerge as a critical issue in the future design of database systems as processors are expected to have more cores. While centralized systems have given way to the client-server architecture, the debate on centralized versus client-server systems is ongoing in the world of computer systems architecture.
 
 ### Server System Architectures
 
+In the realm of server system architectures, there exist two fundamental categories: transaction servers and data servers. The former, also known as query-server systems, allow clients to send requests to execute a specific action, following which the results are sent back to the client. These requests are typically specified in SQL or through a specialized application program interface. The latter, data servers, enable clients to interact with servers to read or update data in files or pages. Database systems offer a range of functionalities, such as indexing facilities and transaction facilities, to manage data consistency in case of machine or process failures.
+
+![Figure 311 - Front-end and back-end functionality](311.png)
+
+Of the two, the transaction-server architecture reigns supreme, with shared-memory-based processing playing a critical role in executing complex queries with multiple simultaneous requests. At the heart of the transaction-server system is a complex web of processes working in harmony to ensure seamless and error-free query execution. These include server processes, lock manager processes, database writer processes, log writer processes, checkpoint processes, and process monitor processes. The shared memory, which stores all shared data, plays a vital role in ensuring smooth data access across processes.
+
+![Figure 312 - Shared memory and process structure](312.png)
+
+Given the shared-memory architecture, it is crucial to have a mechanism in place to ensure mutual exclusion so that only one process modifies a data structure at any given time. This is achieved through the use of semaphores, special atomic instructions supported by the computer hardware. Alternative mechanisms can also be employed with less overhead.
+
+In contrast, data-server systems are employed in high-speed LAN environments, where client machines possess processing power similar to the server machine. Such systems prioritize shipping data to the client machines, making it possible to perform computation-intensive tasks locally. Unlike transaction-server systems, data servers are not widely used and lack the shared-memory architecture that makes the former so efficient.
+
+The intricacies of server system architectures are vast and varied, with transaction-server systems playing a dominant role in today's data-intensive landscape. Their efficient shared-memory-based processing is critical to executing complex queries with multiple simultaneous requests, making them an indispensable tool in modern-day data management.
+
 ### Parallel Systems
+
+In the age of Big Data, parallel systems are increasingly in vogue. With the ability to harness multiple processors and disks in tandem, parallel machines have emerged as a powerful tool for addressing the challenges posed by today's data-intensive applications. These systems are particularly useful for processing enormous databases, with capacities of the order of terabytes (that is, 10^12 bytes), or for handling thousands of transactions per second. Traditional centralized and client-server database systems simply lack the muscle to keep pace with such daunting workloads.
+
+Parallelism involves performing numerous operations simultaneously, in contrast to the sequential processing of serial systems. A typical parallel system can be either coarse-grain, with a small number of high-performance processors, or massively parallel or fine-grain, utilizing thousands of smaller processors. The vast majority of high-end machines today incorporate some degree of coarse-grain parallelism, with at least two or four processors. However, commercial parallel computers boasting hundreds of processors and disks are now readily available.
+
+![Figure 313 - Speedup with increasing resources](313.png)
+
+![Figure 314 - Scaleup with increasing problem size and resources](314.png)
+
+The performance of a database system can be measured in terms of throughput, the number of tasks completed in a given time interval, or response time, the time required to execute a single task from submission to completion. The processing of small transactions can be improved by performing many in parallel, while the processing of large transactions can benefit from sub-task parallelism. Two fundamental measures of parallelism are speedup and scaleup. Speedup is the decrease in execution time achieved by increasing the degree of parallelism. In contrast, scaleup is the capacity to handle larger tasks by increasing the degree of parallelism.
+
+Linear speedup occurs when the speedup is N, reflecting the proportional increase in system resources as compared to a smaller system. Sublinear speedup occurs when the speedup is less than N. Similarly, linear scaleup is defined as TL = TS, where TL is the execution time of a task on a parallel machine ML that is N times larger than MS, the machine executing the same task in TS. On the other hand, sublinear scaleup is characterized by TL > TS. Parallel database systems are evaluated in terms of batch and transaction scaleup, both critical for measuring the efficiency of parallel processing.
+
+![Figure 315 - Interconnection networks](315.png)
+
+For batch scaleup, the size of the database grows with tasks that are large jobs whose runtime depends on the size of the database. Transaction scaleup applies when the rate of database transactions increases in tandem with the size of the database. In both cases, parallelism enables efficient and concurrent processing across multiple processors.
+
+Increasing parallelism is an essential tool for businesses as they manage their growth in the face of ever-increasing data volumes and transaction rates. However, several factors can hamper parallel processing, including start-up costs, overhead costs associated with synchronization, and the limited availability of parallel algorithms for certain kinds of data-intensive tasks. Despite these challenges, parallel systems have become a critical tool in managing the data-driven requirements of modern enterprises.
 
 ### Distributed Systems
 
+In an increasingly interconnected world, the demand for distributed database systems has grown significantly. These systems enable the sharing of data across different sites, from workstations to mainframe systems, and have a range of benefits such as providing autonomy to individual sites and ensuring the availability of data even if one site fails.
+
+Consider, for example, a banking system consisting of four branches spread across different cities. Each branch has its database of accounts, while a separate site maintains information about all the branches. A local transaction in this system involves accessing data only from the site where the transaction was initiated, while a global transaction accesses data across different sites.
+
+However, implementing a distributed database system is no easy task. One critical issue that arises is the atomicity of transactions that run across multiple sites. If not designed carefully, these transactions may lead to inconsistencies in the system, with transactions committing at one site and aborting at another.
+
+![Figure 317 - A distributed system](317.png)
+
+To address this challenge, the two-phase commit protocol (2PC) is widely used. This protocol enables each site to execute a transaction until it enters the partially committed state, leaving the commit decision to a single coordinator site. The transaction is considered ready at a site when it reaches this state. The coordinator then decides whether to commit to the transaction based on the readiness of all sites involved.
+
+Although recovery from failure is more complex in distributed systems than in centralized systems, the increased availability of the system outweighs this challenge. The ability of most of the system to continue operating despite the failure of one site is crucial for database systems used in real-time applications, where the loss of access to data may result in the loss of potential business to competitors.
+
+In conclusion, while distributed database systems have their challenges, they play a critical role in enabling the sharing of data across different sites and ensuring the availability of data even in the face of failures. The use of protocols such as 2PC is crucial to ensure the atomicity of transactions across multiple sites, enabling the system to operate smoothly and without inconsistencies.
+
 ### Network Types
+
+In the realm of computer networking, two types of networks reign supreme: local-area networks (LANs) and wide-area networks (WANs). Their primary distinction is based on the geographic area they cover, with LANs confined to small areas such as a single building or cluster of adjacent buildings and WANs encompassing vast distances that can stretch across an entire country or the entire globe.
+
+![Figure 318 - Local-area network](318.png)
+
+LANs emerged as a means for computers to communicate and share data in the early 1970s. These networks are typically used within an office environment, where all sites are located within close proximity to one another. Consequently, LANs boast faster communication links with lower error rates compared to their WAN counterparts. LANs utilize a variety of communication links such as twisted pair, coaxial cable, fiber optics, and wireless connections, which offer communication speeds ranging from tens of megabits per second to 1 gigabit per second for Gigabit Ethernet. The more recent 10-gigabit Ethernet standard also exists.
+
+![Figure 319 -Storage-area network](319.png)
+
+Furthermore, the storage-area network (SAN) is a specialized type of high-speed LAN, which serves to connect large banks of storage devices to computers that require data access. SANs facilitate large-scale shared-disk systems and offer the same benefits as shared-disk databases, including scalability through the addition of more computers, as well as high availability of data even if individual computers fail. RAID organizations are employed in storage devices to ensure the consistent availability of data even in the event of disk failures. Multiple redundancy paths between nodes are established in SANs, thereby ensuring that the network continues to function if a component such as a link or a connection to the network fails.
+
+WANs, on the other hand, emerged in the late 1960s as an academic research project, mainly aimed at providing efficient communication among remote sites and allowing hardware and software to be shared conveniently and economically by a wide community of users. The first WAN designed and developed was the Arpanet, which started in 1968 as a four-site experimental network and has since grown into the Internet, a worldwide network of networks with hundreds of millions of computer systems. WANs typically utilize fiber-optic lines and satellite channels, with data rates ranging from a few megabits per second to hundreds of gigabits per second.
+
+However, WANs contend with significant latency challenges, as messages may take a few hundred milliseconds to be delivered across the world due to the speed of light and queuing delays at several routers. For applications that rely on geographically distributed data and computing resources, system performance has to be carefully designed to minimize latency's impact. Discontinuous connection WANs, such as mobile wireless connections, and continuous connection WANs, such as the wired Internet, are the two primary classifications of WANs. Networks that aren't continuously connected typically do not allow transactions across sites, but they may maintain local copies of remote data and refresh them periodically. For consistency-critical applications, groupware systems such as Lotus Notes enable remote data updates to be made locally, with the updates subsequently propagated back to the remote site at regular intervals. Nonetheless, conflicting updates may arise at different sites, necessitating detection and resolution mechanisms for such conflicts.
 
 ## Parallel Databases
 
+In this riveting chapter, we delve deep into the intricate world of parallel databases and their foundational algorithms. Specifically, we explore the relational data model and the revolutionary techniques of distributing data across multiple disks and executing relational operations in parallel. These groundbreaking approaches have paved the way for the remarkable achievements of parallel databases, and we uncover their secrets with fervent curiosity and meticulous attention to detail.
+
 ### Introduction
+
+Over two decades ago, parallel database systems were on the brink of extinction, with even their staunchest supporters doubting their viability. However, today they are being effectively marketed by practically every database-system vendor. This transformation can be attributed to several trends.
+
+First, the transactional requirements of organizations have grown with increasing computer usage. Additionally, the growth of the World Wide Web has led to an abundance of sites with millions of viewers, and the increasing amounts of data collected from these viewers have produced extremely large databases at many companies.
+
+Moreover, organizations use these vast amounts of data, such as data about customer behavior, to plan their activities and pricing. Such queries, known as decision-support queries, may require terabytes of data. Single-processor systems cannot handle such a large volume of data at the required rates.
+
+The set-oriented nature of database queries naturally lends itself to parallelization. Several commercial and research systems have demonstrated the power and scalability of parallel query processing.
+
+As microprocessors have become cheaper, parallel machines have become increasingly common and affordable. Additionally, individual processors have themselves become parallel machines through multicore architectures.
+
+Parallelism is also used to provide scaleup, where increasing workloads are handled without increased response time via an increase in the degree of parallelism. The different architectures for parallel database systems: are shared memory, shared disk, shared-nothing, and hierarchical architectures.
 
 ### I/O Parallelism
 
+In the realm of database management, the technique of I/O parallelism has emerged as a potential game-changer. At its core, I/O parallelism is the practice of reducing the time needed to retrieve data from a disk by distributing the data across multiple disks, in what is known as data partitioning. Horizontal partitioning is the most common method, whereby the tuples of a relation are dispersed across several disks, each tuple residing on its disk.
+
+Partitioning data over multiple disks requires a partitioning strategy, and there are three basic methods of data partitioning. The first is the round-robin scheme, which sends tuples to disks in any order, ensuring that each disk has a roughly equivalent number of tuples. Secondly, hash partitioning divides tuples among disks based on a hash function and the value of one or more partitioning attributes. Finally, range partitioning allocates tuples according to contiguous attribute-value ranges, resulting in each disk holding a unique range of tuples.
+
+Once data has been partitioned, it can be read from or written to multiple disks simultaneously, dramatically enhancing transfer rates. However, different partitioning techniques provide varying levels of efficiency when it comes to accessing data. For instance, the round-robin scheme is best suited for applications that scan the entire relation sequentially for each query. In contrast, hash partitioning is ideal for point queries based on the partitioning attribute, while range partitioning is suitable for point and range queries on the partitioning attribute.
+
+![Figure 320 - Example of histogram](320.png)
+
+Range partitioning offers the added advantage of narrowing the search to only the disks that may have the data of interest, which can result in higher throughput and better response times. Despite these benefits, partitioning data is not without its limitations, as different partitioning techniques may not be optimal for all types of queries. Nevertheless, the promise of faster data retrieval times and higher throughput makes I/O parallelism an enticing prospect for database administrators looking to optimize the performance of their systems.
+
 ### Interquery Parallelism
+
+In the realm of database management systems, interquery parallelism is a crucial concept that warrants closer examination. In simple terms, this form of parallelism involves the simultaneous execution of multiple queries or transactions. The benefits of interquery parallelism are numerous; it can dramatically increase transaction throughput, allowing a larger number of transactions to be processed per second. However, it is worth noting that the response times of individual transactions remain unaffected by this type of parallelism.
+
+Interquery parallelism is the most straightforward form of parallelism to implement in a database system, particularly in a shared-memory parallel system. This is because even sequential database systems can support concurrent processing. In contrast, shared-disk or shared-nothing architectures present more of a challenge, as processors must coordinate their efforts to perform certain tasks such as locking and logging. To prevent two processors from updating the same data independently at the same time, cache-coherency protocols are necessary.
+
+To ensure that the latest version of data is available in a processor's buffer pool, a shared-disk system protocol requires a transaction to lock a page in shared or exclusive mode and read the most recent copy of the page from the shared disk immediately after obtaining a shared or exclusive lock. More sophisticated protocols eliminate the need for repeated reading and writing to disk, avoiding the overhead associated with the previous protocol. The shared-disk protocols can be extended to shared-nothing architectures, whereby requests to read or write a page are sent to the home processor of the page.
+
+As examples, the Oracle and Oracle Rdb systems are two shared-disk parallel database systems that support interquery parallelism. Despite the complexities involved in supporting interquery parallelism, its potential benefits make it a valuable concept in database management systems.
 
 ### Intraquery Parallelism
 
-### Intraoperation Parallelism
+There lies a natural propensity towards the parallelization of operations. Given that relational operations work on relations with copious amounts of tuples, it is only fitting that they should be executed in parallel on various subsets of said relations. This type of parallelism within operations is what is commonly referred to as intraoperation parallelism.
+
+We can find a thorough analysis of the parallel versions of a few of the most common relational operations. These operations are parallel sort, parallel join, and parallel aggregate.
+
+When it comes to parallel sorting, one can envision a scenario in which a relation is located on n disks and range-partitioned on the attributes on which it is to be sorted. This allows each partition to be sorted separately and the results to be concatenated to form the entire sorted relation. Furthermore, because the tuples are partitioned across n disks, the time required to read the entire relation is notably reduced by parallel access.
+
+In cases where the relation has been partitioned differently, there are two main approaches to sorting it. Firstly, we can range-partition it on the sort attributes and then sort each partition separately. Alternatively, we can utilize a parallel version of the external sort-merge algorithm.
+
+As for parallel external sort merge, the operation proceeds in a sequence of actions. Initially, each processor locally sorts the data on its disk. Then, the system merges the sorted runs on each processor to get the final sorted output. This merging process can be parallelized by range-partitioning the sorted partitions at each processor across the various processors and sending the tuples in sorted order so that each processor receives the tuples in sorted streams. Each processor then performs a merge on the streams as they are received to obtain a single sorted run. Finally, the system concatenates the sorted runs from the processors to produce the ultimate result.
+
+![Figure 321 - Partitioned parallel join](321.png)
+
+When it comes to parallel join algorithms, the idea is to split the pairs to be tested over several processors, allowing each processor to compute part of the join locally. The system then collects the results from each processor to produce the final output. For certain types of joins, such as equi-joins and natural joins, it is possible to partition the two input relations across the processors and compute the join locally at each processor. This is referred to as partitioned join.
+
+All in all, the utilization of intraoperation parallelism in database systems provides a promising means of increasing efficiency and streamlining the execution of common relational operations.
+
+There exist complex data sets that pose unique challenges for efficient data processing. Join operations, a fundamental operation in database systems, often require specialized techniques for efficient parallelization.
+
+One such technique is the Fragment-and-Replicate join, which can parallelize join operations where partitioning is not applicable due to inequality join conditions. This technique involves partitioning one relation and replicating the other across all processors. The system then computes the join of each partition of the relation with the replicated relation at each processor. The general case of Fragment-and-Replicate join involves partitioning both relations into multiple partitions and replicating the partitions across processors in a specific configuration.
+
+![Figure 322 - Fragment-and-replicate schemes](322.png)
+
+Another technique is the Partitioned Parallel Hash Join, which parallelizes the Partitioned Hash Join algorithm by partitioning both relations and distributing the smaller relation across processors. The system then performs a two-phase hash join process, whereby each processor executes the hash join on local partitions of the relations to produce a partition of the final result. The hash join at each processor is independent of that at other processors, and can leverage optimizations such as caching incoming tuples in memory to minimize I/O costs.
+
+These techniques offer powerful solutions for parallelizing join operations in large and complex data sets, enabling faster and more efficient data processing.
 
 ### Interoperation Parallelism
 
+There exist two forms of interoperation parallelism that can offer significant efficiency gains: pipelined parallelism and independent parallelism. Pipelining has been a vital source of computational economy in database query processing. Its primary advantage lies in the fact that the output tuples of one operation, say A, can be consumed by a second operation, B, even before the former has produced its complete set of output tuples. Thus, intermediate results need not be written to disk, making pipelining an appealing choice in a sequential evaluation.
+
+Parallel systems also make use of pipelining for the same reason as sequential systems - to minimize computational redundancy. However, pipelines can be a source of parallelism in their own right, similar to instruction pipelines in hardware design. By running operations A and B concurrently on different processors, we can achieve pipelined parallelism.
+
+However, it's worth noting that pipelined parallelism has its limitations, particularly in terms of scalability. Pipeline chains generally don't attain sufficient length to provide a high degree of parallelism. Furthermore, relational operators that don't produce output until all inputs have been accessed, such as the set-difference operation, cannot be pipelined. Finally, pipelining offers only marginal speedup when one operator's execution cost is much higher than those of the others. Nonetheless, it can be a valuable tool when working with a lower degree of parallelism.
+
 ### Query Optimization
+
+Query optimization lies at the heart of the success of relational technology. It aims to identify the most efficient execution plan among the plethora of options available that yields the same results as the given query. However, optimizing queries in parallel computing environments is a much more complicated task. The costs involved are more intricate, and factors such as partitioning costs, resource contention, and skew must be considered.
+
+To optimize queries in parallel systems, one must make several critical decisions, including how to parallelize each operation, how many processors to use for each, what operations to pipeline across processors, and which operations to execute sequentially. These decisions are critical in determining the execution tree's schedule.
+
+The optimization process also involves allocating resources, such as processors, disks, and memory, to each operation in the tree. For example, executing operations with significant computational requirements in parallel may not be the best approach if the communication overhead exceeds the computational requirements.
+
+To optimize parallel queries, heuristic approaches are typically adopted to reduce the large number of execution plans that must be considered. One popular heuristic is to consider only those execution plans that parallelize every operation across all processors and do not use any pipelining. The second heuristic is to choose the most efficient sequential evaluation plan and then parallelize its operations.
+
+Moreover, optimizing physical-storage organization is another aspect of query optimization. This is a complex process that involves choosing the best physical organization based on the expected mix of queries. In conclusion, the field of parallel query optimization is still an active area of research, and there is much more to be explored in this exciting and evolving domain.
 
 ### Design of Parallel Systems
 
+The design of large-scale parallel database systems is a complex and multifaceted challenge that demands careful consideration of numerous interrelated issues. In this chapter, we have examined two key aspects of parallelization: data storage and query processing. However, parallel loading of data from external sources and ensuring system availability in the face of hardware failures are also crucial considerations in designing such systems.
+
+The probability of failure of a processor or disk in a large parallel system is significantly higher than in a single-processor system with a single disk, making resilience to failure a critical concern. A well-designed system can continue to operate even if a component fails, with data replicated across multiple processors and requests for data automatically rerouted to backup sites. It is essential that replicas of data are partitioned across multiple processors to prevent bottlenecks.
+
+Furthermore, when dealing with large volumes of data, simple operations like creating indices and schema changes can take a significant amount of time, making it unacceptable for the database system to be unavailable while such operations are in progress. Most database systems now support online operations, allowing for index construction, insertion, deletion, and updates on a relation even as an index is being built on the relation.
+
+In recent years, several companies have developed new parallel database products, including Netezza, DATAllegro, Greenplum, and Aster Data. Each of these products manages the partitioning of data and parallel processing of queries across the database instances. These systems leverage the data storage, query processing, and transaction management features of existing databases and focus on data partitioning, interprocessor communication, parallel query processing, and optimization. Netezza and DATAllegro even offer data warehouse "appliances," including hardware and software, making it easier for customers to build parallel databases.
+
 ### Parallelism on Multicore Processors
+
+The design of large-scale parallel database systems is a complex and multifaceted challenge that demands careful consideration of numerous interrelated issues. In this chapter, we have examined two key aspects of parallelization: data storage and query processing. However, parallel loading of data from external sources and ensuring system availability in the face of hardware failures are also crucial considerations in designing such systems.
+
+The probability of failure of a processor or disk in a large parallel system is significantly higher than in a single-processor system with a single disk, making resilience to failure a critical concern. A well-designed system can continue to operate even if a component fails, with data replicated across multiple processors and requests for data automatically rerouted to backup sites. It is essential that replicas of data are partitioned across multiple processors to prevent bottlenecks.
+
+Furthermore, when dealing with large volumes of data, simple operations like creating indices and schema changes can take a significant amount of time, making it unacceptable for the database system to be unavailable while such operations are in progress. Most database systems now support online operations, allowing for index construction, insertion, deletion, and updates on a relation even as an index is being built on the relation.
+
+In recent years, several companies have developed new parallel database products, including Netezza, DATAllegro, Greenplum, and Aster Data. Each of these products manages the partitioning of data and parallel processing of queries across the database instances. These systems leverage the data storage, query processing, and transaction management features of existing databases and focus on data partitioning, interprocessor communication, parallel query processing, and optimization. Netezza and DATAllegro even offer data warehouse "appliances," including hardware and software, making it easier for customers to build parallel databases.
 
 ## Distributed Databases
 
+In the realm of database management systems, distributed databases stand out as a unique entity, set apart from their parallel counterparts. In contrast to tightly-coupled processors that constitute a single, centralized database system, distributed databases are made up of loosely-coupled sites that do not share physical components. This decentralized structure can pose challenges in transaction and query processing but also offers opportunities for increased availability and fault tolerance.
+
+In this chapter, we delve into the complexities of distributed databases, beginning with a classification of these systems as either homogeneous or heterogeneous. We explore various approaches to storing data in a distributed database, as well as models for transaction processing, atomic transactions, and concurrency control. In addition, we discuss how replication can be leveraged to ensure high availability in the face of failures.
+
+Furthermore, we tackle the unique issues associated with query processing in distributed databases, as well as the complexities of handling heterogeneous databases. Finally, we examine directory systems as a specialized form of distributed databases.
+
+Throughout this chapter, we will use the bank database - Figure as our illustrative example, providing real-world context to the abstract concepts at play.
+
 ### Homogeneous and Heterogeneous Databases
+
+Homogeneous and heterogeneous distributed database systems differ in their degree of similarity and cooperation among sites. A homogeneous system involves sites that share the same database management software, operate with mutual awareness, and collaborate in the processing of user requests. Such a system requires local sites to relinquish a portion of their autonomy in terms of schema modification and database management. In contrast, a heterogeneous system allows for variation in the database management software, schema, and local policies at each site. This level of flexibility allows sites to retain greater control over their local data management while participating in a distributed network. As we explore the complexities of distributed databases in this chapter, we use the example of a banking database to illustrate the various concepts and challenges involved.
+
+![Figure 324 - Banking database](324.png)
 
 ### Distributed Data Storage
 
+In the world of distributed databases, there are two main approaches to storing relations. The first is replication, where multiple identical copies of a relation are stored at different sites. The second is fragmentation, where a relation is divided into several fragments, each of which is stored at a different site.
+
+Replication provides high availability and increased parallelism, but comes with a downside: updates are more complex, and the system must ensure consistency across all replicas. On the other hand, fragmentation allows for more efficient data transfer and simplified concurrency control but requires additional steps to ensure that the original relation can be reconstructed from its fragments.
+
+```account1 = Omegabranchname=“Hillside” (account)
+        account2 = Omegabranchname=“Valleyview” (account)
+        R = R1 ∪ R2 ∪ ··· ∪ Rn
+        ri = PiRi (r)
+        r =r1 Xr2 Xr3 X ··· Xrn
+```
+
+Horizontal fragmentation partitions a relation into subsets, while vertical fragmentation decomposes the schema of a relation. Regardless of the approach, the goal is always to ensure that data is stored in a way that is efficient, secure, and easily accessible. In a banking system, for example, an account can be associated with the site in which it was opened, simplifying the management of replicated data.
+
+Ultimately, the best approach to distributed data storage will depend on the specific needs of the system in question. Replication and fragmentation can be used together to achieve optimal results. But careful consideration must be given to balancing the benefits of availability and parallelism against the complexity and overhead of updates and concurrency control. In the end, the right choice will depend on the unique requirements of each distributed database system.
+
 ### Distributed Transactions
+
+Access to data items is achieved through transactions that ensure the ACID properties. However, these transactions come in two types - local and global - with the latter being more complex due to multiple sites being involved in execution. Ensuring the ACID properties of local transactions can be achieved through well-established techniques. However, the task becomes much more daunting for global transactions, as the failure of one site or a communication link can lead to erroneous computations.
+
+In this context, the chapter of the database management book examines the system structure of distributed databases and their possible failure modes. The chapter delves into the protocols for ensuring atomic commit of global transactions, concurrency control in distributed databases, and how a distributed database can continue functioning despite various types of failure.
+
+![Figure 325 - System architecture](325.png)
+
+In a distributed system, each site has its own local transaction manager, which manages the execution of those transactions that access data stored locally. The transaction manager is responsible for maintaining a log for recovery purposes and participating in an appropriate concurrency-control scheme to coordinate the concurrent execution of transactions. The transaction coordinator subsystem, which is not needed in a centralized environment, is responsible for coordinating the execution of all transactions initiated at a site. It starts the execution of the transaction, breaks it into subtransactions, and distributes them to the appropriate sites for execution. The coordinator also coordinates the termination of the transaction, which may result in the transaction being committed at all sites or aborted at all sites.
+
+A distributed system may suffer from the same types of failures as a centralized system, such as software errors, hardware errors, and disk crashes. However, there are additional types of failure with which we need to deal in a distributed environment, such as failure of a site, loss of messages, failure of a communication link, and network partition. The loss or corruption of messages is always a possibility in a distributed system, and transmission-control protocols such as TCP/IP are used to handle such errors.
+
+The chapter concludes that a system is partitioned if it has been split into two or more subsystems, called partitions, that lack any connection between them. It's noteworthy that, under this definition, a partition may consist of a single node.
 
 ### Commit Protocols
 
+Maintaining transactional atomicity is crucial for preserving data consistency. To ensure that all sites in which a transaction has been executed agree on the final outcome of its execution, a commit protocol must be executed by the transaction coordinator. The two-phase commit (2PC) protocol, among the simplest and most commonly employed, operates as follows:
+
+When a transaction T completes its execution, the coordinator Ci initiates Phase 1 of the 2PC by adding the record  to the log and sending a prepare T message to all sites at which T executed. Upon receiving the message, the transaction manager at each site determines whether it is willing to commit its portion of T. If the answer is affirmative, it adds a record  to the log and replies to Ci with a ready T message. If the answer is negative, it adds a record  to the log and responds to Ci with an abort T message. In Phase 2, when Ci receives responses to the prepared T message from all sites or a predetermined time interval has elapsed, Ci determines whether the transaction can be committed or aborted based on the responses received. If Ci received a ready T message from all sites, T is committed; otherwise, it is aborted.
+
+In the event of a participating site failure, the coordinator takes appropriate action depending on the stage of the commit protocol reached prior to the failure. After recovery, a participating site examines its log to determine the fate of incomplete transactions. The site executes redo(T) if the log contains a  record, undo(T) if it contains an  record, and, if it contains a  record, consults with the coordinator to determine the transaction's fate. If the coordinator is available, the site executes either redo(T) or undo(T) based on the coordinator's decision, whereas, if the coordinator is unavailable, the site contacts other sites to obtain the transaction's fate.
+
+While the 2PC protocol's simplicity and wide use make it an appealing choice for database administrators, the three-phase commit (3PC) protocol offers certain advantages over 2PC. However, 3PC's increased complexity and overhead may be a deterrent.
+
+The problem of two-phase commit is a thorn in the side of many software applications. The notion of a single transaction that spans multiple sites can lead to blocking and severe disruptions in the flow of data. However, a new approach has emerged that sidesteps the issue of distributed commitment and promises to bring a more reliable and efficient solution to the table: persistent messaging.
+
+Imagine the scenario of transferring funds between two banks, each with its own computer. If a transaction is initiated to span the two sites and use a two-phase commit to ensure atomicity, the blocking of updates to the total bank balance can have serious consequences for all other transactions at each bank. In contrast, consider the process of transferring funds via bank check: the bank first deducts the amount of the check from the available balance and prints out a check. The check is then physically transferred to the other bank where it is deposited. After verifying the check, the bank increases the local balance by the amount of the check. The check constitutes a message sent between the two banks. In a networked environment, persistent messages provide the same service as the check, but much faster.
+
+Persistent messages are guaranteed to be delivered to the recipient exactly once, neither less nor more, regardless of failures, if the transaction sending the message commits. In contrast, regular messages may be lost or may even be delivered multiple times in some situations. However, error handling is more complicated with persistent messaging than with a two-phase commit. The exception handling code provided by the application is then invoked to deal with the failure.
+
+The implementation of persistent messaging can be achieved by utilizing a set of protocols. The sending site protocol works by writing a record containing the message in a special relation message to send, instead of directly sending out the message. The message is also given a unique message identifier. A message delivery process monitors the relation, and when a new message is found, it sends the message to its destination. The usual database concurrency-control mechanisms ensure that the system process reads the message only after the transaction that wrote the message commits; if the transaction aborts, the usual recovery mechanism would delete the message from the relation.
+
+Similarly, the receiving site protocol works by running a transaction that adds the message to a special received messages relation provided it is not already present in the relation (the unique message identifier allows duplicates to be detected). After the transaction commits, or if the message was already present in the relation, the receiving site sends an acknowledgment back to the sending site.
+
+While the types of exception conditions may arise depending on the application, it is clear that the benefits of eliminating blocking are well worth the extra effort required to implement systems that use persistent messages. In fact, few organizations would agree to support two-phase commit for transactions originating outside the organization, since failures could result in the blocking of access to local data. As such, persistent messaging is quickly becoming a crucial component in the realm of distributed transactions.
+
 ### Concurrency Control in Distributed Databases
 
+In the realm of distributed databases, the importance of concurrency control schemes cannot be overstated. In a recent study, we presented novel approaches that extend the concepts of locking protocols to this distributed landscape, showcasing how they can be modified to ensure transaction atomicity and maintain global data consistency.
+
+Our research explores the use of shared and exclusive lock modes to safeguard data integrity, and we examine several different approaches, including the single lock-manager and distributed lock-manager approaches. While both approaches offer certain advantages, they also come with their own set of challenges.
+
+The single lock-manager approach boasts a simple implementation and streamlined deadlock handling, as all lock and unlock requests are centralized at a single site. However, this approach creates a bottleneck at that site, making the system vulnerable to failure if the site goes down.
+
+On the other hand, the distributed lock-manager approach distributes the lock-manager function across several sites, reducing the likelihood of failure. But this approach comes with its challenges, including more complex deadlock handling and the possibility of intersite deadlocks.
+
+```Qr + Qw > S and 2 ∗ Qw > S
+```
+
+In addition, we examine the primary copy and majority protocols as possible solutions for dealing with replicated data. These protocols allow for efficient concurrency control, but they also have their limitations in terms of accessibility and the need for all replicas to be available for write operations.
+
+Overall, our study delves deep into the intricate challenges of concurrency control in distributed databases, providing valuable insights into the strengths and limitations of different approaches. These findings have the potential to pave the way for more robust and efficient systems in the future.
+
+As we delve into the intricate world of distributed databases, we encounter a fundamental challenge that has been previously addressed in centralized databases: how to efficiently manage timestamps in a distributed environment. This is a crucial task, for timestamps serve as the backbone in deciding the serialization order of transactions across the distributed system.
+
+![Figure 325 - Generation of unique timestamps](325.png)
+
+In the pursuit of a solution, we find two primary methods for generating unique timestamps - centralized and distributed. In the former, a single site distributes the timestamps using either a logical counter or its local clock. In the latter, each site generates a unique local timestamp using a logical counter or its local clock, which is then concatenated with the site identifier to create a unique global timestamp. However, we must ensure that the local timestamps are generated fairly across the system, for a fast site's logical counter could inadvertently generate larger timestamps than slower sites. This challenge is resolved by implementing logical clocks within each site that are synchronized and incremented only when a new transaction visits a site with a higher timestamp.
+
+![Figure 326 - Local wait-for graphs](326.png)
+
+In addition to timestamping, replication is another vital aspect of distributed databases that must be approached with caution. The master-slave replication model allows updates at a primary site, which are then propagated automatically to replicas at other sites. This approach is useful in creating a copy of the database to run large queries and for distributing information from a central office to branch offices of an organization. However, it does not permit transactions to update replicas at remote sites, thereby limiting its effectiveness.
+
+In contrast, the multimaster replication model permits updates at any replica of a data item, which is then automatically propagated to all other replicas. One approach to updating replicas is to use an immediate update with a two-phase commit, utilizing one of the distributed concurrency-control techniques. However, many database systems use the biased protocol, where writes have to lock and update all replicas and read lock and read any one replica as their currency-control technique.
+
+![Figure 327 - Global wait-for graph](327.png)
+
+![Figure 329 - False cycles in the global wait-for graph](329.png)
+
+Another alternative to immediate updates is the lazy propagation of updates to other sites, which allows transaction processing to continue even when a site is disconnected from the network. However, this comes at the cost of consistency, as updates may be performed concurrently at multiple replicas. Therefore, certain schemes are employed to mitigate these issues, such as translating updates at replicas into updates at a primary site, which are then propagated lazily to all replicas to ensure serial ordering of updates.
+
+In the world of distributed databases, we must strike a delicate balance between efficiency, consistency, and availability, for each aspect has its advantages and drawbacks. Nevertheless, with careful consideration and the implementation of appropriate techniques, we can create robust and reliable distributed databases that enable seamless communication and data management across a vast network of sites.
+
 ### Availability
+As a distributed database system expands in size, failures become more probable and the need for high availability becomes paramount. The ability to continue functioning during these failures referred to as robustness, is a critical goal in distributed computing. In order to achieve this robustness, the system must detect failures, reconfigure itself, and recover when a processor or a link is repaired.
+
+Handling different types of failures requires different approaches. For example, message loss is typically addressed through retransmission, while network partition is mitigated by attempting to find an alternative route for the message. However, it can be challenging to differentiate between site failure and network partition, making it important to use multiple links between sites to ensure connectivity even if one link fails.
+
+In the event of a failure, a distributed system must initiate a procedure to reconfigure and continue normal operation. If transactions were active at a failed site, they should be aborted promptly to avoid impeding other transactions at operational sites. If replicated data are stored at a failed site, the catalog must be updated so that queries do not reference the copy at the failed site.
+
+It is important to design a reconfiguration scheme that works correctly in case of network partitioning. In particular, situations must be avoided where two or more central servers are elected in distinct partitions or where more than one partition updates a replicated data item. While traditional database systems prioritize consistency, some modern applications value availability more. Replication protocols must be designed accordingly for these systems.
+
+The majority-based approach to distributed concurrency control is a viable solution for mitigating failures. By sending lock-request messages to more than half of the replicas of a replicated data object, transactions ensure that the majority of replicas are consistent. Read operations look at all replicas on which a lock has been obtained, while writes read all the replicas to find the highest version number. As long as a majority of replicas are read during the version number search and the commit contains a majority of replicas of all objects written to, the two-phase commit protocol can be used as usual on the available sites.
+
+Robustness and high availability are essential in distributed database systems. Mitigating failures requires a combination of approaches, and a reconfiguration scheme that can handle network partitioning is key. By utilizing the majority-based approach to distributed concurrency control, modern applications can prioritize availability while ensuring consistency.
+
+Ensuring both consistency and availability has long been a coveted goal, the holy grail of system design. Alas, this ideal has proven to be nothing more than a mirage, as the CAP theorem has taught us. In its eloquent and concise formulation, the theorem states that no distributed database can possess all three properties of consistency, availability, and partition tolerance.
+
+This sobering truth is underscored by the protocols we have explored thus far, which require a (weighted) majority of sites to be available for updates to proceed. As a consequence, in the event of network partitions, the system may become completely unavailable for updates and even reads, depending on the read-quorum.
+
+While the "write-all-available" protocol does provide availability, it does so at the cost of consistency. Thus, designers are forced to make a trade-off, deciding which of the two properties they will prioritize. Such a decision depends on the particular use case and its requirements.
+
+Moreover, some of the algorithms discussed in this context require the use of a coordinator, whose failure can bring the entire system to a grinding halt. To circumvent this, the use of a backup coordinator is advocated, whose role is to maintain enough information locally to allow it to assume the role of coordinator with minimal disruption to the distributed system. While this backup approach does have overhead during normal processing, it allows for fast recovery from coordinator failure.
+
+Ultimately, as distributed systems continue to proliferate and evolve, so too will the challenges that they face. But one thing remains clear: the quest for both consistency and availability will continue to captivate and motivate system designers, as they strive to strike the right balance in the ever-shifting landscape of distributed systems.
 
 ### Distributed Query Processing
 
+The intricacies of distributed query processing were explored, with a focus on finding an optimal strategy to compute a query's answer. While minimizing disk access is the primary criterion for centralized systems, several other factors must be taken into account in a distributed system, including data transmission costs over the network and the potential for improved performance through parallel processing.
+
+One example discussed in the chapter involves the query "Find all the tuples in the account relation." While seemingly straightforward, the fragmentation and replication of the account relation present challenges in choosing an optimal strategy for processing the query. Exhaustive enumeration of alternative strategies may not be practical, making the use of query optimization techniques crucial.
+
+```Omegabranch name = “Hillside” (account)
+        account1 ∪ account2
+        Omegabranch name = “Hillside” (account1 ∪ account2)
+        Omegabranch name = “Hillside” (account1) ∪ Omegabranch name = “Hillside” (account2) 
+        Omegabranch name = “Hillside” (account1)
+        Omegebranch name = “Hillside” (account2) 
+        Omegabranch name = “Hillside” (Omegabranch name = “Valleyview” (account))
+```
+
+Join processing was also examined in the context of distributed systems. The chapter explores several potential strategies for processing the relational algebra expression "account X depositor X branch," with considerations such as data volume and transmission costs playing a significant role in determining the optimal approach.
+
+Optimizing join operations can have a significant impact on overall system performance. In this vein, the semijoin strategy presents an intriguing approach to minimizing network costs during the execution of join operations. This technique involves computing a semijoin of the two input relations, which is a subset of the original join output that can be used to filter unnecessary data before it is shipped across the network.
+
+The semijoin strategy can be quite effective, particularly when a large proportion of tuples in one of the input relations do not contribute to the join result. By shipping only a reduced subset of data, the cost savings can be significant. However, as with any optimization technique, there are trade-offs to consider. For example, the cost of computing the semijoin at one site and then shipping it to another site may outweigh the benefits in some cases.
+
+When it comes to parallelizing join operations, there are many possible strategies to consider. In one approach, the input relations are split across different sites, and each site computes a partial join result that is then pipelined to the final output site. This technique can significantly reduce the overall execution time for join operations, particularly for large joins involving multiple relations.
+
+Effective join optimization is essential for achieving high performance in relational databases. While there are many different strategies to consider, the semijoin and parallelization techniques described here offer promising ways to minimize network costs and maximize system efficiency.
+
 ### Heterogeneous Distributed Databases
+
+In today's world of complex and dynamic database systems, the challenge of integrating data from diverse and heterogeneous sources can be a formidable task. This is where the multi-database system, a software layer that sits on top of existing database systems, comes into play. Its role is to provide a unified view of data and enable efficient query processing while allowing local databases to retain a high degree of autonomy.
+
+However, the road to achieving a unified view of data is riddled with technical and organizational difficulties. For instance, each local database system may use a different data model, and thus a common data model must be used to create the illusion of a single, integrated database system. Furthermore, the provision of a common conceptual schema is a complicated task, as it involves the integration of separate schemas into one common schema, which can be complicated by semantic heterogeneity.
+
+Query processing in a heterogeneous database can also be a challenging task, as queries on the global schema have to be translated into queries on local schemas at each site, and query results have to be translated back into the global schema. Wrappers can be used to simplify this process, and even provide a relational view of non-relational data sources such as Web pages, flat files, and hierarchical and network databases.
+
+The task of integrating data from heterogeneous databases is a complicated one, but the advantages of multi-database systems far outweigh their overhead. Through a common data model and careful query processing, a unified view of data can be achieved without requiring physical database integration.
 
 ### Cloud-Based Databases
 
+Cloud computing has revolutionized the way enterprises handle their computing needs. With the advent of cloud-based databases, businesses can now access a plethora of computing services, including data storage services, map services, and other services that can be accessed through a web-service application programming interface. This innovative concept has gained immense popularity since it eliminates the need for a large system-support staff and allows new enterprises to commence operations without making significant, up-front capital investments in computing systems.
+
+Many vendors offer cloud services, ranging from traditional computing vendors to industry giants such as Amazon and Google. Web applications with millions to hundreds of millions of users have driven the demand for cloud-based databases. These applications require high scalability and availability, and traditional database applications cannot meet these needs. Hence, several cloud-based data-storage systems have been developed in recent years to serve the needs of such applications.
+
+Cloud-based databases have features of both homogeneous and heterogeneous systems. The data is owned by one organization but stored on computers that are owned and operated by another organization. This poses some transaction processing challenges, but many of the organizational and political challenges that arise in heterogeneous systems are avoided.
+
+Despite the tremendous benefits of cloud-based databases, several technical as well as non-technical challenges need to be addressed. These include data representation, availability, security, and privacy concerns. Hence, it is imperative that cloud-based databases continue to evolve to meet the changing needs of businesses and users. The world of cloud computing is ever-evolving, and businesses must adapt to stay ahead of the curve.
+
+As we delve into the intricate workings of cloud data storage systems, a clear picture emerges of the strategies used to manage extremely large amounts of data. The key, we discover, lies in effective partitioning and retrieval techniques, which ensure that data is divided into manageable, bite-sized chunks, or "tablets", for efficient processing.
+
+Unlike traditional parallel databases, partitioning in cloud data storage systems is not always pre-determined. Instead, data is partitioned into small, easily-manageable units based on the search key, ensuring that requests for specific key values are directed to a single tablet. This approach avoids overburdening the system with multiple requests and allows for incremental load handling as more servers are added.
+
+At the heart of this process lies the assignment of a master site for each tablet, where all updates are routed and propagated to replicas. To keep the load on each tablet in check, dynamic partitioning allows for the breaking up of large tablets into smaller parts or sharing the load across multiple sites. Meanwhile, a tablet controller site ensures efficient mapping of requests to the correct site, with replication of mapping information on router sites ensuring no single site is overburdened.
+
+![Figure 330 - Architecture of a cloud data storage system](330.png)
+
+While such systems typically do not fully support ACID transactions, data replication across multiple machines in a cluster ensures that normal operations can continue even with multiple sites down. With data replication across geographically distributed clusters, data is protected against data center failures, making cloud data storage systems both efficient and reliable.
+
+Indeed, as we peer into the intricacies of these systems, we are left with a sense of awe at the sheer scale and complexity of the processes involved. Yet, through the judicious application of partitioning and retrieval techniques, and the deployment of efficient replication strategies, cloud data storage systems stand ready to meet the challenges of modern data management with confidence and aplomb.
+
 ### Directory Systems
+
+Amidst the evolving landscape of modern organizations and networked communication, the directory systems of yore have found a new lease on life, bringing with them an unprecedented level of accessibility and organization to employee data. Once a physical listing of employee information, the directory system has now taken on a new form in the digital age, allowing for quick and efficient searches through a comprehensive online network.
+
+* ldap:://codex.cs.yale.edu/o=Yale University,c=USA 
+* ldap:://codex.cs.yale.edu/o=Yale University,c=USA??sub?cn=Silberschatz
+
+These systems not only serve the needs of humans but also the programs that require access to the same information. While database systems are perfectly capable of storing the various types of employee data, directory access protocols simplify the process by catering to a specific type of access. Moreover, directory systems provide a simple yet effective way to name objects hierarchically, similar to file system directories, enabling a distributed directory system to specify the information stored in each of the directory servers. With this design, directory servers can automatically forward queries between different locations, providing users with greater autonomy and control.
+
+![Figure 331 - Example of LDAP code in C](331.png)
+
+One widely used directory access protocol is the Lightweight Directory Access Protocol (LDAP), which provides many features of the more complex X.500 protocol but with less complexity, making it the go-to solution for many organizations. Entries in LDAP directories similarly store information about objects, with each entry containing a distinguished name (DN) composed of a sequence of relative distinguished names (RDNs). These entries may also have attributes, including telephone numbers and postal addresses, with the option of multiple values for each attribute.
+
+All in all, directory systems have proved themselves to be invaluable resources for organizations, serving not only to provide easy access to employee data but also to authenticate users and store various types of information. By utilizing relational databases to store data, these systems have streamlined access to information, making them a fundamental element of modern organization.
 
 # DATA WAREHOUSING, DATA MINING, AND INFORMATION RETRIEVAL
 
